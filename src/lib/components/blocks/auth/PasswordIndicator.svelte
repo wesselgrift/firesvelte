@@ -37,6 +37,14 @@
 		if (strength <= 4) return 'bg-blue-500';
 		return 'bg-green-500';
 	});
+
+	const getBarClass = (index: number) => {
+		if (index >= strength) return 'bg-muted';
+		if (strength <= 2) return 'bg-destructive';
+		if (strength <= 3) return 'bg-yellow-500';
+		if (strength <= 4) return 'bg-lime-500';
+		return 'bg-green-500';
+	};
 </script>
 
 {#if password}
@@ -49,13 +57,7 @@
 		</div>
 		<div class="flex gap-1">
 			{#each Array(5) as _, i}
-				<div
-					class="h-1 flex-1 rounded-full bg-muted"
-					class:bg-destructive={i < strength && strength <= 2}
-					class:bg-yellow-500={i < strength && strength > 2 && strength <= 3}
-					class:bg-blue-500={i < strength && strength > 3 && strength <= 4}
-					class:bg-green-500={i < strength && strength > 4}
-				></div>
+				<div class="h-1 flex-1 rounded-full {getBarClass(i)}"></div>
 			{/each}
 		</div>
 	</div>
