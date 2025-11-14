@@ -1,0 +1,53 @@
+import { adminDb } from '$lib/server/firebase-admin';
+import type { UserProfile } from '$lib/stores/userStore';
+import type { LayoutServerLoad } from './$types';
+
+export const load: LayoutServerLoad = async ({ locals }) => {
+	if (!locals.user) {
+		return {
+			user: null,
+			userProfile: null
+		};
+	}
+
+	try {
+		// Fetch user profile from Firestore
+		const userDoc = await adminDb.collection('users').doc(locals.user.uid).get();
+
+		let userProfile: UserProfile | null = null;
+
+		if (userDoc.exists) {
+			const data = userDoc.data();
+			userProfile = {
+				uid: data?.uid || locals.user.uid,
+				email: data?.email || locals.user.email || null,
+				firstName: data?.firstName || null,
+				lastName: data?.lastName || null,
+				emailVerified: data?.emailVerified || locals.user.email_verified || false,
+				createdAt: data?.createdAt?.toDate() || undefined,
+				updatedAt: data?.updatedAt?.toDate() || undefined
+			};
+		} else {
+			// Synthesize profile from token if not in Firestore
+			userProfile = {
+				uid: locals.user.uid,
+				email: locals.user.email || null,
+				firstName: locals.user.name?.split(' ')[0] || undefined,
+				lastName: locals.user.name?.split(' ').slice(1).join(' ') || undefined,
+				emailVerified: locals.user.email_verified || false
+			};
+		}
+
+		return {
+			user: locals.user,
+			userProfile
+		};
+	} catch (error) {
+		console.error('Error loading user profile:', error);
+		return {
+			user: locals.user,
+			userProfile: null
+		};
+	}
+};
+
