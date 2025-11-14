@@ -24,8 +24,8 @@ export async function register(email: string, password: string, firstName?: stri
 		// Send verification email
 		await sendEmailVerification(user);
 
-		// Exchange ID token for session cookie
-		await ensureServerSession(user);
+		// Exchange ID token for session cookie, passing firstName and lastName
+		await ensureServerSession(user, false, firstName, lastName);
 
 		return { user, error: null };
 	} catch (error: any) {
@@ -97,7 +97,7 @@ export async function logout(redirectTo: string = '/login') {
 	}
 }
 
-export async function ensureServerSession(user: User, forceRefresh = false) {
+export async function ensureServerSession(user: User, forceRefresh = false, firstName?: string, lastName?: string) {
 	try {
 		// Force token refresh if needed (e.g., after email verification to get updated claims)
 		const idToken = await user.getIdToken(forceRefresh);
@@ -107,7 +107,7 @@ export async function ensureServerSession(user: User, forceRefresh = false) {
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({ idToken })
+			body: JSON.stringify({ idToken, firstName, lastName })
 		});
 
 		if (!response.ok) {

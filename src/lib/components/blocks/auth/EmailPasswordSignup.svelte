@@ -4,7 +4,6 @@
 	import { Label } from '$lib/components/ui/label';
 	import { register, ensureServerSession } from '$lib/firebase/auth';
 	import { goto } from '$app/navigation';
-	import { auth } from '$lib/firebase/firebase';
 	import PasswordIndicator from './PasswordIndicator.svelte';
 
 	let email = $state('');
@@ -27,9 +26,8 @@
 			}
 
 			if (result.user) {
-				// Ensure server session is created
-				await ensureServerSession(result.user);
 				// Redirect to verify email page
+				// Note: ensureServerSession is already called in register()
 				goto('/verify-email');
 			}
 		} catch (err: any) {
