@@ -5,7 +5,10 @@ import type { UserProfile } from '$lib/stores/userStore';
 
 declare global {
 	namespace App {
-		// interface Error {}
+		interface Error {
+			status?: number;
+			message?: string;
+		}
 		interface Locals {
 			user: DecodedIdToken | null;
 		}

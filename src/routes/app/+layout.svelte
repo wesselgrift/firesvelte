@@ -31,8 +31,5 @@
 	{@render children()}
 </div>
 
-<!-- Portal mount points for modals/drawers -->
-<div id="example-modal"></div>
-<div id="settings-modal"></div>
-<div id="example-drawer"></div>
+
 
