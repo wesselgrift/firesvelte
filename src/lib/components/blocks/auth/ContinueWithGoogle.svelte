@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import { loginWithGoogle } from '$lib/firebase/auth';
-
+    import { Spinner } from '$lib/components/ui/spinner';
 	let loading = $state(false);
 	let error = $state('');
 
@@ -30,8 +30,13 @@
 		onclick={handleGoogleLogin}
 		disabled={loading}
 	>
-        <img src="/google-icon.svg" alt="Google" class="w-5 h-5" />
-		{loading ? 'Signing in...' : 'Continue with Google'}
+		{#if loading}
+            <Spinner class="size-5" />
+            Continue with Google
+		{:else}
+            <img src="/google-icon.svg" alt="Google" class="size-5" />
+			Continue with Google
+		{/if}
 	</Button>
 
 	{#if error}

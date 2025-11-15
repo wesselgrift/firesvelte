@@ -4,6 +4,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { login } from '$lib/firebase/auth';
+    import { Spinner } from '$lib/components/ui/spinner';
 
 	let email = $state('');
 	let password = $state('');
@@ -68,7 +69,10 @@
 	{/if}
 
 	<Button type="submit" class="w-full" disabled={loading}>
-		{loading ? 'Logging in...' : 'Log in'}
+		{#if loading}
+			<Spinner class="size-5" />
+		{/if}
+        Log in
 	</Button>
 </form>
 
