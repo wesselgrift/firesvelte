@@ -17,7 +17,7 @@
 		{:else}
         
             <div class="mb-[80px] lg:mb-10">
-                <Logo width="w-28" />
+                <Logo class="w-28" />
             </div>
 
             <h2 class="mb-9 text-2xl font-medium leading-tight">Log in</h2>

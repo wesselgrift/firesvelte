@@ -1,11 +1,11 @@
 <script lang="ts">
     // Component props for logo customization
     interface LogoProps {
-        width?: string;
+        class?: string;
     }
 
     let {
-        width = 'w-28'    // Tailwind width class (default: w-28, can be overridden)
+        class: className = 'w-28'    // Tailwind classes (default: w-28, can be overridden)
     }: LogoProps = $props();
 
     // CSS classes for logo styling
@@ -28,7 +28,7 @@
 </script>
 
 <!-- Responsive logo that switches between light/dark versions based on user's theme preference -->
-<picture class={classes.frame + ' ' + width}>
+<picture class={classes.frame + ' ' + className}>
   <!-- Dark mode logo - only loads when user prefers dark color scheme -->
   <source srcset="/logo-dark.svg" media="(prefers-color-scheme: dark)" />
   <!-- Default light mode logo - fallback for all other cases -->
