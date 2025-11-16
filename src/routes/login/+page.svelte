@@ -9,12 +9,6 @@
 
 <div class="flex justify-center lg:h-screen lg:items-center">
     <div class="w-full max-w-md p-5">
-
-		{#if $loading}
-			<div class="flex items-center justify-center py-8">
-				<div class="text-muted-foreground">Loading...</div>
-			</div>
-		{:else}
         
             <div class="mb-[80px] lg:mb-10">
                 <Logo class="w-28" />
@@ -38,11 +32,9 @@
                 <ContinueWithGoogle />
                 
                 <div class="text-center text-sm">
-                    <a href="/account" class="text-muted-foreground hover:text-foreground">Create account</a>
+                    <a href="/account" class="text-muted-foreground hover:text-foreground">Create account instead</a>
                 </div>
             </div>
-
-		{/if}
 
     </div>
 </div>

@@ -3,6 +3,8 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
     import { Spinner } from '$lib/components/ui/spinner';
+    import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert'
+    import { CircleAlert, CircleCheck } from '@lucide/svelte';
 	import { resetPassword } from '$lib/firebase/auth';
 
 	let email = $state('');
@@ -31,16 +33,23 @@
 </script>
 
 {#if error}
-    <div class="text-sm text-destructive">{error}</div>
+    <Alert variant="destructive">
+        <CircleAlert />
+        <AlertTitle>Something went wrong</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+    </Alert>
 {/if}
 
 {#if success}
-    <div class="text-sm text-green-600">
-        Password reset email sent! Check your inbox.
-    </div>
+    <Alert class="text-green-700">
+        <CircleCheck/>
+        <AlertTitle>You've got mail</AlertTitle>
+        <AlertDescription>We've sent you an email with a password reset link.</AlertDescription>
+    </Alert>
 {/if}
 
 <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-5">
+
 	<div class="space-y-2.5">
 		<Label for="email">Email</Label>
 		<Input

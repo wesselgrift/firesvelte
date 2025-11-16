@@ -3,6 +3,8 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+    import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert'
+    import { CircleAlert } from '@lucide/svelte';
 	import { login } from '$lib/firebase/auth';
     import { Spinner } from '$lib/components/ui/spinner';
 
@@ -38,6 +40,22 @@
 	}
 </script>
 
+{#if error}
+    <Alert variant="destructive">
+        <CircleAlert />
+        <AlertTitle>We couldn't sign you in.</AlertTitle>
+        <AlertDescription>
+            <p>
+                {#if error === "Firebase: Error (auth/invalid-credential)."}
+                    Please check your email and password, or reset your password if you've forgotten it.
+                {:else}
+                    We ran into a problem: <br> {error}
+                {/if}
+            </p>
+        </AlertDescription>
+    </Alert>
+{/if}
+
 <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-5">
 	<div class="space-y-2.5">
 		<Label for="email">Email</Label>
@@ -63,10 +81,6 @@
 			disabled={loading}
 		/>
 	</div>
-
-	{#if error}
-		<div class="text-sm text-destructive">{error}</div>
-	{/if}
 
 	<Button type="submit" class="w-full -mt-1" disabled={loading}>
 		{#if loading}

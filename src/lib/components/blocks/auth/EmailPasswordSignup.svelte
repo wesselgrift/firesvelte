@@ -3,6 +3,9 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
     import { Spinner } from '$lib/components/ui/spinner'
+    import { Alert, AlertDescription, AlertTitle } from "$lib/components/ui/alert";
+    import { CircleAlert } from '@lucide/svelte';
+
 	import { register } from '$lib/firebase/auth';
 	import { goto } from '$app/navigation';
 	import PasswordIndicator from './PasswordIndicator.svelte';
@@ -39,7 +42,21 @@
 </script>
 
 {#if error}
-    <div class="text-sm text-destructive">{error}</div>
+    <Alert variant="destructive">
+        <CircleAlert />
+        <AlertTitle>Whoops</AlertTitle>
+        <AlertDescription>
+            <p>
+                {#if error === "Firebase: Error (auth/email-already-in-use)."}
+                    This email is already registered. Try logging in instead.
+                {:else if error === "Firebase: Password should be at least 6 characters (auth/weak-password)."}
+                    Your password isn't strong enough.
+                {:else}
+                    We ran into an unknown problem. Please try again later.
+                {/if}
+            </p>
+        </AlertDescription>
+    </Alert>
 {/if}
 
 <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-5">

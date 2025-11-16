@@ -25,7 +25,7 @@
                 </div>
                 <ContinueWithGoogle />
                 <div class="text-center text-sm">
-                    <a href="/login" class="text-muted-foreground hover:text-foreground">Log in</a>
+                    <a href="/login" class="text-muted-foreground hover:text-foreground">Log in instead</a>
                 </div>
             </div>
         </div>

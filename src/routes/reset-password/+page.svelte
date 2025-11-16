@@ -11,10 +11,16 @@
 
         <h2 class="mb-9 text-2xl font-medium leading-tight text-color-foreground">Reset password</h2>
 
-        <ResetPassword />
+        <div class="flex flex-col gap-5">
 
-        <div class="mt-5 text-center text-sm">
-            <a href="/login" class="text-muted-foreground hover:text-foreground">Back to sign in</a>
+            <ResetPassword />
+
+            <div class="text-center text-sm">
+                <a href="/login" class="text-muted-foreground hover:text-foreground">Back to sign in</a>
+            </div>
         </div>
     </div>
 </div>
+
+
+            
