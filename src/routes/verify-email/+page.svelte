@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Button } from '$lib/components/ui/button';
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+    import { Alert, AlertDescription, AlertTitle } from '$lib/components/ui/alert'
+    import { Logo } from '$lib/components/ui/logo'
+	import { Spinner } from '$lib/components/ui/spinner';
 	import { auth } from '$lib/firebase/firebase';
 	import { sendVerificationEmail, ensureServerSession, logout } from '$lib/firebase/auth';
 	import { goto } from '$app/navigation';
@@ -74,41 +76,78 @@
 	}
 </script>
 
-<Card class="mx-auto max-w-md">
-	<CardHeader>
-		<CardTitle>Verify your email</CardTitle>
-		<CardDescription>
-			We've sent a verification email to {user?.email || 'your email address'}
-		</CardDescription>
-	</CardHeader>
-	<CardContent class="space-y-4">
-		{#if loading}
-			<div class="flex items-center justify-center py-8">
-				<div class="text-muted-foreground">Loading...</div>
+<!-- Two-column layout: form on left, image on right -->
+<div class="w-full lg:flex lg:h-screen">
+	<!-- Left column: verification form -->
+	<div class="flex w-full items-start justify-center lg:w-1/2 lg:items-center">
+		<div class="w-full max-w-md p-5">
+			<!-- Logo -->
+			<div class="mb-[80px] lg:mb-10">
+				<Logo />
 			</div>
-		{:else if user}
-			<div class="space-y-4">
-				<p class="text-sm text-muted-foreground">
-					Please check your email and click the verification link to activate your account.
+			
+			<!-- Error message -->
+			{#if error}
+				<div class="mb-5">
+					<Alert variant="destructive">
+						<AlertTitle>Whoops</AlertTitle>
+                        <AlertDescription>
+                            <p>
+                                {#if error === "Firebase: Error (auth/too-many-requests)."}
+                                    You've tried too many times, try again in 15 minutes.
+                                {:else}
+                                    We ran into an unknown problem.
+                                {/if}
+                            </p>
+                        </AlertDescription>
+					</Alert>
+				</div>
+			{/if}
+			
+			<!-- Page title and instructions -->
+			<h2 class="text-color-foreground mb-4 text-2xl font-medium leading-tight">
+				Check your email
+			</h2>
+			<div class="flex flex-col items-start gap-5 mb-25 lg:mb-0">
+				<p class="mb-2 text-sm">
+					We've sent a verification email to <span class="font-medium">{user?.email}</span>. Please
+					check your email and click the link to verify your account.
 				</p>
 
-				{#if error}
-					<div class="text-sm text-destructive">{error}</div>
-				{/if}
+				<!-- Action buttons -->
+				<div class="flex gap-2">
+					<!-- Resend email button with loading/success states -->
+					<Button variant="outline" size="sm" onclick={handleResend}>
+						{#if sending}
+                            <Spinner class="size-5" />
+							Sending email
+						{:else}
+							Resend email
+						{/if}
+					</Button>
 
-				<Button onclick={handleResend} disabled={sending} class="w-full">
-					{sending ? 'Sending...' : 'Resend verification email'}
-				</Button>
-
-				<Button
-					variant="outline"
-					onclick={handleTryAnotherEmail}
-					class="w-full"
-				>
-					Try another email
-				</Button>
+					<!-- Try different email button -->
+					<Button variant="ghost" size="sm" onclick={handleTryAnotherEmail}>
+						Sign up with another email
+					</Button>
+				</div>
 			</div>
-		{/if}
-	</CardContent>
-</Card>
+		</div>
+	</div>
+	
+	<!-- Right column: decorative image -->
+	<div class="sign-up-img animate-fade-in flex h-[200px] w-full bg-zinc-950 p-8 lg:h-auto lg:w-1/2">
+		<!-- Promo space -->
+	</div>
+</div>
+
+<style>
+	/* Background image styling for right column */
+	.sign-up-img {
+		background-image: url('/abstract-img.png');
+		background-size: cover;
+		background-position: center;
+		background-repeat: no-repeat;
+	}
+</style>
 
