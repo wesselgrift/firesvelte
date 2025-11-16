@@ -38,6 +38,10 @@
 	}
 </script>
 
+{#if error}
+    <div class="text-sm text-destructive">{error}</div>
+{/if}
+
 <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-5">
 	<div class="grid grid-cols-2 gap-5">
 		<div class="space-y-2.5">
@@ -83,10 +87,6 @@
 		/>
 		<PasswordIndicator {password} />
 	</div>
-
-	{#if error}
-		<div class="text-sm text-destructive">{error}</div>
-	{/if}
 
 	<Button type="submit" class="w-full -mt-1" disabled={loading}>
 		{#if loading}
