@@ -41,7 +41,7 @@
 {/if}
 
 {#if success}
-    <Alert class="text-green-700">
+    <Alert class="text-green-700 dark:text-green-500">
         <CircleCheck/>
         <AlertTitle>You've got mail</AlertTitle>
         <AlertDescription>We've sent you an email with a password reset link.</AlertDescription>
