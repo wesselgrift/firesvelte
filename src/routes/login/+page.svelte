@@ -7,7 +7,7 @@
 
 
 <div class="flex justify-center lg:h-screen lg:items-center">
-    <div class="w-full max-w-md p-5">
+    <div class="animate-fade-in-zoom w-full max-w-md p-5">
         
             <div class="mb-[80px] lg:mb-10">
                 <Logo class="w-28" />
