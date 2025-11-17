@@ -3,7 +3,7 @@
 </script>
 
 <div class="container mx-auto flex min-h-screen flex-col items-center justify-center px-4 py-12">
-	<div class="mx-auto max-w-2xl space-y-8 text-center">
+	<div class="animate-fade-in-zoom mx-auto max-w-2xl space-y-8 text-center">
 		<div class="space-y-4">
 			<h1 class="text-4xl font-bold tracking-tight sm:text-6xl">
 				Welcome to SvelteKit Starter
@@ -25,7 +25,7 @@
 
 		<div class="pt-8">
 			<a
-				href="https://github.com"
+				href="https://github.com/wesselgrift/sv-starter"
 				target="_blank"
 				rel="noopener noreferrer"
 				class="text-sm text-muted-foreground hover:text-foreground"
