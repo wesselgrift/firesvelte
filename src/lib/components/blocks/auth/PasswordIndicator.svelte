@@ -78,8 +78,8 @@
 {:else}
 	<!-- Password requirements helper text when no password is entered -->
 	<p class="bloc h-12 text-left text-sm text-muted-foreground/80">
-		Use a password with at least 8 characters, 1 uppercase letter, 1 lowercase letter, 1 number
-		and 1 special character.
+		Strong passwords have at least 8 characters, upper and lower case letters, numbers
+		and special characters.
 	</p>
 {/if}
 
