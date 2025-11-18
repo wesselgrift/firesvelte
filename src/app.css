@@ -1,9 +1,10 @@
+/* Import Tailwind CSS base, animations and custom animation styles */
 @import "tailwindcss";
-
 @import "tw-animate-css";
-
 @import "./lib/styles/animations.css";
 
+/* Define CSS custom properties (variables) for the light theme color scheme */
+/* These variables are used throughout the app for consistent theming */
 :root {
     --radius: 0.625rem;
     --background: oklch(1 0 0);
@@ -39,6 +40,8 @@
     --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* Override color variables for dark mode when user's system preference is dark */
+/* This automatically switches the theme based on the user's OS/browser settings */
 @media (prefers-color-scheme: dark) {
     :root {
         --background: oklch(0.16 0 0);
@@ -75,6 +78,9 @@
     }
 }
 
+/* Map CSS custom properties to Tailwind theme colors */
+/* This allows using Tailwind utility classes (e.g., bg-background, text-foreground) */
+/* that reference these theme variables */
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -113,10 +119,14 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* Base layer styles applied globally */
+/* These styles are applied to all elements and the body element */
 @layer base {
+  /* Apply default border and outline colors to all elements */
   * {
     @apply border-border outline-ring/50;
   }
+  /* Set default background, text color, and font for the body */
   body {
     @apply bg-background text-foreground antialiased;
     font-family: "Geist", sans-serif;
