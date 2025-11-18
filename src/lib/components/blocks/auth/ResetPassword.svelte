@@ -1,17 +1,24 @@
 <script lang="ts">
+	// UI component imports
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
     import { Spinner } from '$lib/components/ui/spinner';
     import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert'
+
+    // Icon imports
     import { CircleAlert, CircleCheck } from '@lucide/svelte';
+	
+    // Firebase auth function
 	import { resetPassword } from '$lib/firebase/auth';
 
+	// Form state
 	let email = $state('');
 	let error = $state('');
 	let success = $state(false);
 	let loading = $state(false);
 
+	// Handles password reset form submission
 	async function handleSubmit() {
 		error = '';
 		success = false;
@@ -32,6 +39,7 @@
 	}
 </script>
 
+<!-- Error alert displayed when password reset fails -->
 {#if error}
     <Alert variant="destructive">
         <CircleAlert />
@@ -40,6 +48,7 @@
     </Alert>
 {/if}
 
+<!-- Success alert displayed when reset email is sent -->
 {#if success}
     <Alert class="text-green-700 dark:text-green-500">
         <CircleCheck/>
@@ -48,6 +57,7 @@
     </Alert>
 {/if}
 
+<!-- Password reset form -->
 <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-5">
 
 	<div class="space-y-2.5">
@@ -64,6 +74,7 @@
         </p>
 	</div>
 
+	<!-- Submit button with loading state -->
 	<Button type="submit" class="w-full" disabled={loading}>
 		{#if loading }
             <Spinner class="size-5" />

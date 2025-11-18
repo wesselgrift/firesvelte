@@ -1,3 +1,4 @@
+/* Fade in with slight zoom effect */
 @keyframes fadeInZoom {
     from {
       opacity: 0;
@@ -9,8 +10,9 @@
     }
   }
 
+/* Disabled by default, enabled on desktop only */
 .animate-fade-in-zoom {
-  animation: none; /* Default state - no animation */
+  animation: none;
 }
 
 @media (min-width: 1024px) {
@@ -19,6 +21,7 @@
   }
 }
 
+/* Simple fade in animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -28,8 +31,9 @@
   }
 }
 
+/* Disabled by default, enabled on desktop only */
 .animate-fade-in {
-  animation: none; /* Default state - no animation */
+  animation: none;
 }
 
 @media (min-width: 1024px) {

@@ -1,10 +1,14 @@
 <script lang="ts">
+	// UI components and Firebase auth function
 	import { Button } from '$lib/components/ui/button';
+	import { Spinner } from '$lib/components/ui/spinner';
 	import { loginWithGoogle } from '$lib/firebase/auth';
-    import { Spinner } from '$lib/components/ui/spinner';
+
+	// Component state for loading and error handling
 	let loading = $state(false);
 	let error = $state('');
 
+	// Handles Google OAuth login flow with error handling
 	async function handleGoogleLogin() {
 		error = '';
 		loading = true;
@@ -22,6 +26,7 @@
 	}
 </script>
 
+<!-- Google sign-in button with loading state and error display -->
 <div class="space-y-2">
 	<Button
 		type="button"
@@ -31,10 +36,10 @@
 		disabled={loading}
 	>
 		{#if loading}
-            <Spinner class="size-5" />
-            Continue with Google
+			<Spinner class="size-5" />
+			Continue with Google
 		{:else}
-            <img src="/google-icon.svg" alt="Google" class="size-5" />
+			<img src="/google-icon.svg" alt="Google" class="size-5" />
 			Continue with Google
 		{/if}
 	</Button>

@@ -1,7 +1,9 @@
 <script lang="ts">
-	// Stores and utilities
+	// Store and utility imports
 	import { userProfile as userProfileStore } from '$lib/stores/userStore';
 	import { addBodyClass, removeBodyClass } from '$lib/utils/bodyClassUpdater';
+    
+	// Type imports
 	import type { PageData } from './$types';
 	import type { Snippet } from 'svelte';
 
@@ -13,12 +15,12 @@
 
 	let { data, children }: Props = $props();
 
-	// Sync userProfile store with server data
+	// Sync user profile from server data to store
 	$effect(() => {
 		userProfileStore.set(data.userProfile || null);
 	});
 
-	// Add logged-in class to body when layout is active
+	// Add 'logged-in' body class when component mounts, remove on unmount
 	$effect(() => {
 		addBodyClass('logged-in');
 		return () => {
@@ -27,7 +29,7 @@
 	});
 </script>
 
-<!-- Render child routes -->
+<!-- Render child route content -->
 {@render children()}
 
 

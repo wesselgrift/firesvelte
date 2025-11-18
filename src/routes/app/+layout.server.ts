@@ -1,8 +1,11 @@
+// Firebase admin database and type imports
 import { adminDb } from '$lib/server/firebase-admin';
 import type { UserProfile } from '$lib/stores/userStore';
 import type { LayoutServerLoad } from './$types';
 
+// Server-side load function that fetches user profile data for authenticated users
 export const load: LayoutServerLoad = async ({ locals }) => {
+	// Return null values if user is not authenticated
 	if (!locals.user) {
 		return {
 			user: null,
@@ -11,11 +14,12 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 	}
 
 	try {
-		// Fetch user profile from Firestore
+		// Fetch user document from Firestore
 		const userDoc = await adminDb.collection('users').doc(locals.user.uid).get();
 
 		let userProfile: UserProfile | null = null;
 
+		// Build user profile from Firestore data or fallback to auth user data
 		if (userDoc.exists) {
 			const data = userDoc.data();
 			userProfile = {
@@ -28,7 +32,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 				updatedAt: data?.updatedAt?.toDate() || undefined
 			};
 		} else {
-			// Synthesize profile from token if not in Firestore
+			// Create profile from auth user data if Firestore document doesn't exist
 			userProfile = {
 				uid: locals.user.uid,
 				email: locals.user.email || null,
@@ -43,6 +47,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 			userProfile
 		};
 	} catch (error) {
+		// Return user without profile if database query fails
 		console.error('Error loading user profile:', error);
 		return {
 			user: locals.user,

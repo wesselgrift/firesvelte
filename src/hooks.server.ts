@@ -1,16 +1,16 @@
+// Firebase Admin SDK for verifying session cookies
 import { adminAuth } from '$lib/server/firebase-admin';
+
+// SvelteKit utilities for redirects and type definitions
 import { redirect, isRedirect } from '@sveltejs/kit';
 import type { Handle } from '@sveltejs/kit';
 
-// Routes that don't require authentication to access
+// Routes that don't require authentication
 const publicRoutes = ['/', '/login', '/account', '/reset-password'];
 
-/**
- * Server hook that runs on every request to handle authentication and route protection
- * This ensures users are authenticated before accessing protected routes
- */
+// Server hook that runs on every request to handle authentication and route protection
 export const handle: Handle = async ({ event, resolve }) => {
-	// Skip authentication checks for API routes - they handle their own auth
+	// Skip authentication checks for API routes
 	if (event.url.pathname.startsWith('/api')) {
 		console.log('[AUTH] Skipping auth check for API route:', event.url.pathname);
 		return resolve(event);
@@ -18,15 +18,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	console.log('[AUTH] Checking auth state for route:', event.url.pathname);
 
-	// Get the session cookie from the request
 	const sessionCookie = event.cookies.get('session');
 
 	if (sessionCookie) {
 		console.log('[AUTH] Session cookie found, verifying...');
-		// User has a session cookie - verify it's valid
 		try {
-			// Verify the session cookie with Firebase Admin SDK
-			// The second parameter (true) checks if the cookie was revoked
+			// Verify the session cookie and decode user claims
 			const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie, true);
 			
 			console.log('[AUTH] Session cookie verified successfully:', {
@@ -36,16 +33,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 				auth_time: new Date(decodedClaims.auth_time * 1000).toISOString()
 			});
 			
-			// Store user data in event.locals so it's available in load functions and pages
+			// Attach user data to event locals for use in load functions and pages
 			event.locals.user = decodedClaims;
 
-			// If user's email is verified and they're on a public route, redirect to app
+			// Redirect verified users away from public routes to the app
 			if (decodedClaims.email_verified && publicRoutes.includes(event.url.pathname)) {
 				console.log('[AUTH] Email verified user on public route, redirecting to /app');
 				throw redirect(302, '/app');
 			}
 
-			// If user's email is not verified and they're not on the verify-email page, redirect them
+			// Redirect unverified users to email verification page
 			if (!decodedClaims.email_verified && event.url.pathname !== '/verify-email') {
 				console.log('[AUTH] Email not verified, redirecting to /verify-email');
 				throw redirect(302, '/verify-email');
@@ -53,31 +50,29 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 			console.log('[AUTH] User authenticated, allowing access to:', event.url.pathname);
 		} catch (error) {
-			// If this is a redirect, re-throw it (redirects throw errors in SvelteKit)
+			// Re-throw redirect errors to allow SvelteKit to handle them
 			if (isRedirect(error)) {
 				throw error;
 			}
 
-			// Session cookie is invalid, expired, or revoked
 			console.log('[AUTH] Session cookie verification failed:', error instanceof Error ? error.message : 'Unknown error');
 			
-			// Clear the user data and delete the invalid cookie
+			// Clear invalid session data
 			event.locals.user = null;
 			event.cookies.delete('session', { path: '/' });
 			console.log('[AUTH] Invalid session cookie deleted');
 
-			// If user is trying to access a protected route, redirect to login
+			// Redirect to login if trying to access protected route with invalid session
 			if (!publicRoutes.includes(event.url.pathname)) {
 				console.log('[AUTH] Protected route accessed without valid session, redirecting to /login');
 				throw redirect(302, '/login');
 			}
 		}
 	} else {
-		// No session cookie found - user is not authenticated
 		console.log('[AUTH] No session cookie found - user not authenticated');
 		event.locals.user = null;
 
-		// If user is trying to access a protected route, redirect to login
+		// Redirect to login if accessing protected route without session
 		if (!publicRoutes.includes(event.url.pathname)) {
 			console.log('[AUTH] Protected route accessed without session, redirecting to /login');
 			throw redirect(302, '/login');
@@ -86,7 +81,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	}
 
-	// Continue processing the request
 	return resolve(event);
 };
 

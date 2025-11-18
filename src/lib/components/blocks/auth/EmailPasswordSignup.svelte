@@ -1,15 +1,18 @@
 <script lang="ts">
+	// UI components
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-    import { Spinner } from '$lib/components/ui/spinner'
-    import { Alert, AlertDescription, AlertTitle } from "$lib/components/ui/alert";
-    import { CircleAlert } from '@lucide/svelte';
+	import { Spinner } from '$lib/components/ui/spinner';
+	import { Alert, AlertDescription, AlertTitle } from "$lib/components/ui/alert";
+	import { CircleAlert } from '@lucide/svelte';
 
+	// Auth and navigation
 	import { register } from '$lib/firebase/auth';
 	import { goto } from '$app/navigation';
 	import PasswordIndicator from './PasswordIndicator.svelte';
 
+	// Form state
 	let email = $state('');
 	let password = $state('');
 	let firstName = $state('');
@@ -17,6 +20,7 @@
 	let error = $state('');
 	let loading = $state(false);
 
+	// Handles form submission and user registration
 	async function handleSubmit() {
 		error = '';
 		loading = true;
@@ -41,27 +45,30 @@
 	}
 </script>
 
+<!-- Error alert with user-friendly messages for different error types -->
 {#if error}
-    <Alert variant="destructive">
-        <CircleAlert />
-        <AlertTitle>Whoops</AlertTitle>
-        <AlertDescription>
-            <p>
-                {#if error === "Firebase: Error (auth/email-already-in-use)."}
-                    This email is already registered. Try logging in instead.
-                {:else if error === "Firebase: Password should be at least 6 characters (auth/weak-password)."}
-                    Your password isn't strong enough.
-                {:else if error === "Firebase: Error (auth/too-many-requests)."}
-                    You've tried too many times. Please try again in 15 minutes.
-                {:else}
-                    We ran into an unknown problem. Please try again later.
-                {/if}
-            </p>
-        </AlertDescription>
-    </Alert>
+	<Alert variant="destructive">
+		<CircleAlert />
+		<AlertTitle>Whoops</AlertTitle>
+		<AlertDescription>
+			<p>
+				{#if error === "Firebase: Error (auth/email-already-in-use)."}
+					This email is already registered. Try logging in instead.
+				{:else if error === "Firebase: Password should be at least 6 characters (auth/weak-password)."}
+					Your password isn't strong enough.
+				{:else if error === "Firebase: Error (auth/too-many-requests)."}
+					You've tried too many times. Please try again in 15 minutes.
+				{:else}
+					We ran into an unknown problem. Please try again later.
+				{/if}
+			</p>
+		</AlertDescription>
+	</Alert>
 {/if}
 
+<!-- Registration form with name, email, and password fields -->
 <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-5">
+	<!-- Name fields in a two-column grid -->
 	<div class="grid grid-cols-2 gap-5">
 		<div class="space-y-2.5">
 			<Label for="firstName">First Name</Label>
@@ -84,6 +91,7 @@
 		</div>
 	</div>
 
+	<!-- Email input field -->
 	<div class="space-y-2.5">
 		<Label for="email">Email</Label>
 		<Input
@@ -95,6 +103,7 @@
 		/>
 	</div>
 
+	<!-- Password input with strength indicator -->
 	<div class="space-y-2.5">
 		<Label for="password">Password</Label>
 		<Input
@@ -107,10 +116,11 @@
 		<PasswordIndicator {password} />
 	</div>
 
+	<!-- Submit button with loading state -->
 	<Button type="submit" class="w-full -mt-1" disabled={loading}>
 		{#if loading}
 			<Spinner class="size-5" />
 		{/if}
-        Create account
+		Create account
 	</Button>
 </form>
