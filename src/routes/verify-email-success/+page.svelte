@@ -43,9 +43,6 @@
 			<Logo class="w-28" />
 		</div>
 
-		<!-- Page heading -->
-		<h2 class="mb-9 text-2xl font-medium leading-tight text-color-foreground">Verify your email</h2>
-
 		<!-- Form and navigation container -->
 		<div class="flex flex-col gap-5">
 			<!-- Email verification component -->

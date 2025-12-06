@@ -3,7 +3,7 @@
 	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
 	import { Button } from '$lib/components/ui/button';
 	import { Spinner } from '$lib/components/ui/spinner';
-	import { CircleCheck, CircleAlert } from '@lucide/svelte';
+	import { CircleCheck, CircleAlert, LoaderCircle } from '@lucide/svelte';
 
 	// Firebase imports
 	import { applyActionCode } from 'firebase/auth';
@@ -94,7 +94,7 @@
 {#if invalidCode}
 	<Alert variant="destructive">
 		<CircleAlert />
-		<AlertTitle>Verification failed</AlertTitle>
+		<AlertTitle>Email verification failed</AlertTitle>
 		<AlertDescription>{error || 'Invalid or missing verification link. Please request a new verification email.'}</AlertDescription>
 	</Alert>
 {:else if verified}
@@ -102,26 +102,29 @@
 		<CircleCheck />
 		<AlertTitle>Email verified successfully</AlertTitle>
 		<AlertDescription>
-			Your email has been verified. {redirecting ? 'Redirecting...' : 'Redirecting you in a moment...'}
+			Your email has been verified. You will be redirected to the app in a moment.
 		</AlertDescription>
 	</Alert>
-	<Button onclick={handleContinue} class="w-full" disabled={redirecting}>
+	<Button onclick={handleContinue} disabled={redirecting}>
 		{#if redirecting}
 			<Spinner class="size-5" />
 			Redirecting...
 		{:else}
-			Continue
+			Go to app
 		{/if}
 	</Button>
 {:else if loading}
-	<div class="flex flex-col items-center gap-4 py-8">
-		<Spinner class="size-8" />
-		<p class="text-sm text-muted-foreground">Verifying your email...</p>
-	</div>
+    <Alert>
+        <LoaderCircle class="animate-spin" />
+        <AlertTitle>Verifying your email</AlertTitle>
+        <AlertDescription>
+            This may take a few seconds.
+        </AlertDescription>
+    </Alert>
 {:else if error}
 	<Alert variant="destructive">
 		<CircleAlert />
-		<AlertTitle>Verification failed</AlertTitle>
+		<AlertTitle>Email verification failed</AlertTitle>
 		<AlertDescription>{error}</AlertDescription>
 	</Alert>
 {/if}
