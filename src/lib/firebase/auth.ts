@@ -24,7 +24,18 @@ export async function register(email: string, password: string, firstName?: stri
 		const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 		const user = userCredential.user;
 
-		await sendEmailVerification(user);
+		// Get the base URL for the custom action handler
+		const baseUrl =
+			typeof window !== 'undefined'
+				? window.location.origin
+				: import.meta.env.VITE_APP_URL || 'http://localhost:5173';
+		
+		const actionCodeSettings = {
+			url: `${baseUrl}/auth-action`,
+			handleCodeInApp: true
+		};
+
+		await sendEmailVerification(user, actionCodeSettings);
 		await ensureServerSession(user, false, firstName, lastName);
 
 		return { user, error: null };
@@ -116,7 +127,18 @@ export async function ensureServerSession(user: User, forceRefresh = false, firs
 // Sends email verification to the user
 export async function sendVerificationEmail(user: User) {
 	try {
-		await sendEmailVerification(user);
+		// Get the base URL for the custom action handler
+		const baseUrl =
+			typeof window !== 'undefined'
+				? window.location.origin
+				: import.meta.env.VITE_APP_URL || 'http://localhost:5173';
+		
+		const actionCodeSettings = {
+			url: `${baseUrl}/auth-action`,
+			handleCodeInApp: true
+		};
+
+		await sendEmailVerification(user, actionCodeSettings);
 		return { error: null };
 	} catch (error: any) {
 		return { error: error.message };
@@ -133,7 +155,7 @@ export async function resetPassword(email: string) {
 				: import.meta.env.VITE_APP_URL || 'http://localhost:5173';
 		
 		const actionCodeSettings = {
-			url: `${baseUrl}/set-new-password`,
+			url: `${baseUrl}/auth-action`,
 			handleCodeInApp: true
 		};
 

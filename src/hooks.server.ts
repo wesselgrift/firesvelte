@@ -6,7 +6,7 @@ import { redirect, isRedirect } from '@sveltejs/kit';
 import type { Handle } from '@sveltejs/kit';
 
 // Routes that don't require authentication
-const publicRoutes = ['/', '/login', '/account', '/reset-password', '/set-new-password'];
+const publicRoutes = ['/', '/login', '/account', '/reset-password', '/set-new-password', '/auth-action', '/verify-email-success'];
 
 // Routes that should be accessible even when authenticated (special cases)
 // Note: /set-new-password is handled separately with oobCode validation
@@ -71,7 +71,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 			}
 
 			// Redirect unverified users to email verification page
-			if (!decodedClaims.email_verified && event.url.pathname !== '/verify-email') {
+			// Exception: allow access to auth-action and verify-email-success routes (they're handling verification)
+			if (!decodedClaims.email_verified && 
+			    event.url.pathname !== '/verify-email' && 
+			    event.url.pathname !== '/auth-action' &&
+			    event.url.pathname !== '/verify-email-success') {
 				console.log('[AUTH] Email not verified, redirecting to /verify-email');
 				throw redirect(302, '/verify-email');
 			}
