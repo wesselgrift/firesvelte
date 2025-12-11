@@ -70,4 +70,3 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		return json({ error: error.message || 'Authentication failed' }, { status: 401 });
 	}
 };
-

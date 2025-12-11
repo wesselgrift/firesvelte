@@ -6,6 +6,7 @@ import ResetPassword from "./ResetPassword.svelte";
 import SetNewPassword from "./SetNewPassword.svelte";
 import UserProfile from "./UserProfile.svelte";
 import VerifyEmailAction from "./VerifyEmailAction.svelte";
+import VerifyEmailChangeAction from "./VerifyEmailChangeAction.svelte";
 
 export {
 	ContinueWithGoogle,
@@ -16,4 +17,5 @@ export {
 	SetNewPassword,
 	UserProfile,
 	VerifyEmailAction,
+	VerifyEmailChangeAction,
 };

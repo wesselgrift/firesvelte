@@ -70,6 +70,9 @@
 		} else if (finalMode === 'verifyEmail') {
 			// Redirect to email verification handler
 			goto(`/verify-email-success?${queryString}`, { replaceState: true });
+		} else if (finalMode === 'verifyAndChangeEmail') {
+			// Redirect to email change verification handler
+			goto(`/verify-email-change?${queryString}`, { replaceState: true });
 		} else {
 			// Unknown or unsupported mode
 			error = `Unsupported action: ${finalMode}`;

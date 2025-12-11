@@ -10,28 +10,139 @@
 	import { Spinner } from '$lib/components/ui/spinner';
 
 	// Icons
-	import { Pencil, CircleAlert, CheckCircle2 } from '@lucide/svelte';
+	import { Pencil, CircleAlert, CircleCheck, Unlink } from '@lucide/svelte';
 
 	// Firebase auth
-	import { logout } from '$lib/firebase/auth';
-	import { signInWithEmailAndPassword } from 'firebase/auth';
+	import { logout, linkGoogleProvider, unlinkGoogleProvider } from '$lib/firebase/auth';
+	import {
+		signInWithEmailAndPassword,
+		onAuthStateChanged,
+		EmailAuthProvider,
+		reauthenticateWithCredential,
+		verifyBeforeUpdateEmail,
+		type User
+	} from 'firebase/auth';
 	import { auth } from '$lib/firebase/firebase';
+	import { invalidateAll } from '$app/navigation';
 
 	// State management
 	let editingEmail = $state(false);
 	let editingPassword = $state(false);
+	let settingPassword = $state(false);
 	let newEmail = $state('');
+	let currentPasswordForEmail = $state('');
 	let oldPassword = $state('');
 	let newPassword = $state('');
 	let confirmPassword = $state('');
 	let loading = $state(false);
 	let error = $state('');
 	let successMessage = $state('');
+	let currentUser = $state<User | null>(null);
+	let disconnectingGoogle = $state(false);
+	let connectingGoogle = $state(false);
+
+	// Track current Firebase auth user
+	$effect(() => {
+		const unsubscribe = onAuthStateChanged(auth, (user) => {
+			currentUser = user;
+		});
+
+		return () => unsubscribe();
+	});
+
+	// Provider detection
+	const hasGoogleProvider = $derived(
+		currentUser?.providerData.some((provider) => provider.providerId === 'google.com') ?? false
+	);
+	const hasEmailPasswordProvider = $derived(
+		currentUser?.providerData.some((provider) => provider.providerId === 'password') ?? false
+	);
+
+	// Get provider emails
+	const googleProviderData = $derived(
+		currentUser?.providerData.find((provider) => provider.providerId === 'google.com')
+	);
+	const emailPasswordProviderData = $derived(
+		currentUser?.providerData.find((provider) => provider.providerId === 'password')
+	);
+
+	const googleEmail = $derived(googleProviderData?.email || null);
+	const emailPasswordEmail = $derived(emailPasswordProviderData?.email || null);
+
+	// Determine which email to display
+	const displayEmail = $derived.by(() => {
+		if (hasEmailPasswordProvider && emailPasswordEmail) {
+			return emailPasswordEmail;
+		}
+		if (hasGoogleProvider && googleEmail) {
+			return googleEmail;
+		}
+		return $userProfile?.email || 'N/A';
+	});
+
+	// Determine if email editing is allowed
+	const canEditEmail = $derived(hasEmailPasswordProvider);
+
+	// Determine if disconnect is allowed
+	const canDisconnectGoogle = $derived(hasEmailPasswordProvider);
+
+	// Connect Google provider
+	async function handleConnectGoogle() {
+		error = '';
+		successMessage = '';
+		connectingGoogle = true;
+
+		try {
+			const result = await linkGoogleProvider();
+			if (result.error) {
+				error = result.error;
+				connectingGoogle = false;
+				return;
+			}
+
+			// Refresh the page data
+			await invalidateAll();
+			successMessage = 'Google account connected successfully';
+			connectingGoogle = false;
+		} catch (err: any) {
+			error = err.message || 'Failed to connect Google account';
+			connectingGoogle = false;
+		}
+	}
+
+	// Disconnect Google provider
+	async function handleDisconnectGoogle() {
+		error = '';
+		successMessage = '';
+		disconnectingGoogle = true;
+
+		try {
+			const result = await unlinkGoogleProvider();
+			if (result.error) {
+				error = result.error;
+				disconnectingGoogle = false;
+				return;
+			}
+
+			// Refresh the page data
+			await invalidateAll();
+			successMessage = 'Google account disconnected successfully';
+			disconnectingGoogle = false;
+		} catch (err: any) {
+			error = err.message || 'Failed to disconnect Google account';
+			disconnectingGoogle = false;
+		}
+	}
 
 	// Enter email edit mode
 	function handleEditEmail() {
+		if (!canEditEmail) {
+			error = 'Please set a password first to edit your email';
+			return;
+		}
 		editingEmail = true;
-		newEmail = $userProfile?.email || '';
+		newEmail = displayEmail;
+		currentPasswordForEmail = '';
 		error = '';
 		successMessage = '';
 	}
@@ -40,6 +151,7 @@
 	function handleCancelEmail() {
 		editingEmail = false;
 		newEmail = '';
+		currentPasswordForEmail = '';
 		error = '';
 		successMessage = '';
 	}
@@ -66,43 +178,73 @@
 			}
 
 			// Check if email changed
-			if (newEmail.trim() === $userProfile?.email) {
+			if (newEmail.trim() === displayEmail) {
 				error = 'Email is the same as current email';
 				loading = false;
 				return;
 			}
 
-			// Call API to update email
-			const response = await fetch('/api/auth/update-email', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ newEmail: newEmail.trim() })
-			});
-
-			const data = await response.json();
-
-			if (!response.ok) {
-				error = data.error || 'Failed to update email';
+			// Validate password
+			if (!currentPasswordForEmail) {
+				error = 'Password is required to change your email';
 				loading = false;
 				return;
 			}
 
-			// Show success message
-			successMessage = `Your session has expired. Please log in with your new email: ${newEmail.trim()}`;
+			// Re-authenticate user with their current password
+			if (!currentUser || !emailPasswordEmail) {
+				error = 'Unable to verify your identity';
+				loading = false;
+				return;
+			}
 
-			// Logout after 2 seconds
-			setTimeout(() => {
-				logout('/login');
-			}, 2000);
+			try {
+				const credential = EmailAuthProvider.credential(emailPasswordEmail, currentPasswordForEmail);
+				await reauthenticateWithCredential(currentUser, credential);
+			} catch (err: any) {
+				if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
+					error = 'Incorrect password';
+					loading = false;
+					return;
+				}
+				throw err;
+			}
+
+			// Get the base URL for the custom action handler
+			const baseUrl =
+				typeof window !== 'undefined'
+					? window.location.origin
+					: 'http://localhost:5173';
+
+			const actionCodeSettings = {
+				url: `${baseUrl}/auth-action`,
+				handleCodeInApp: true
+			};
+
+			// Send verification email to the new email address
+			await verifyBeforeUpdateEmail(currentUser, newEmail.trim(), actionCodeSettings);
+
+			// Show success message
+			successMessage = `Verification email sent to ${newEmail.trim()}. Please check your inbox and click the link to complete the email change.`;
+			editingEmail = false;
+			currentPasswordForEmail = '';
+			loading = false;
 		} catch (err: any) {
-			error = err.message || 'An error occurred';
+			// Handle specific Firebase errors
+			if (err.code === 'auth/email-already-in-use') {
+				error = 'This email is already in use by another account';
+			} else if (err.code === 'auth/invalid-email') {
+				error = 'Invalid email format';
+			} else if (err.code === 'auth/requires-recent-login') {
+				error = 'Please sign out and sign back in to change your email';
+			} else {
+				error = err.message || 'An error occurred';
+			}
 			loading = false;
 		}
 	}
 
-	// Enter password edit mode
+	// Enter password edit mode (for existing password)
 	function handleEditPassword() {
 		editingPassword = true;
 		oldPassword = '';
@@ -112,9 +254,19 @@
 		successMessage = '';
 	}
 
+	// Enter set password mode (for Google-only users)
+	function handleSetPassword() {
+		settingPassword = true;
+		newPassword = '';
+		confirmPassword = '';
+		error = '';
+		successMessage = '';
+	}
+
 	// Cancel password edit
 	function handleCancelPassword() {
 		editingPassword = false;
+		settingPassword = false;
 		oldPassword = '';
 		newPassword = '';
 		confirmPassword = '';
@@ -122,7 +274,72 @@
 		successMessage = '';
 	}
 
-	// Save password changes
+	// Set initial password (for Google-only users)
+	async function handleSetInitialPassword() {
+		error = '';
+		successMessage = '';
+		loading = true;
+
+		try {
+			// Validate inputs
+			if (!newPassword) {
+				error = 'Password is required';
+				loading = false;
+				return;
+			}
+
+			if (newPassword.length < 6) {
+				error = 'Password must be at least 6 characters long';
+				loading = false;
+				return;
+			}
+
+			if (newPassword !== confirmPassword) {
+				error = 'Passwords do not match';
+				loading = false;
+				return;
+			}
+
+			// Call API to set password
+			const response = await fetch('/api/auth/set-password', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ newPassword })
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				error = data.error || 'Failed to set password';
+				loading = false;
+				// If session expired, suggest refreshing
+				if (response.status === 401) {
+					setTimeout(() => {
+						window.location.reload();
+					}, 2000);
+				}
+				return;
+			}
+
+			// Password set successfully - user needs to sign in again
+			// Setting a password via Admin SDK invalidates existing tokens
+			successMessage = 'Password set successfully! Please sign in again to continue.';
+			settingPassword = false;
+			loading = false;
+
+			// Sign out after a short delay so user can see the message
+			setTimeout(() => {
+				logout('/login');
+			}, 2000);
+		} catch (err: any) {
+			error = err.message || 'An error occurred';
+			loading = false;
+		}
+	}
+
+	// Save password changes (for existing password)
 	async function handleSavePassword() {
 		error = '';
 		successMessage = '';
@@ -161,14 +378,14 @@
 			}
 
 			// Verify old password by attempting to sign in
-			if (!$userProfile?.email) {
+			if (!emailPasswordEmail) {
 				error = 'Email not found';
 				loading = false;
 				return;
 			}
 
 			try {
-				await signInWithEmailAndPassword(auth, $userProfile.email, oldPassword);
+				await signInWithEmailAndPassword(auth, emailPasswordEmail, oldPassword);
 			} catch (err: any) {
 				if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
 					error = 'Current password is incorrect';
@@ -222,10 +439,45 @@
 	<!-- Success Alert -->
 	{#if successMessage}
 		<Alert>
-			<CheckCircle2 />
+			<CircleCheck />
 			<AlertTitle>Success</AlertTitle>
 			<AlertDescription>{successMessage}</AlertDescription>
 		</Alert>
+	{/if}
+
+	<!-- Google Sign-in Alert (Situations A, C, D, E, F) -->
+	{#if hasGoogleProvider}
+		<Alert>
+			<CircleCheck />
+			<AlertTitle>Signed in with Google</AlertTitle>
+			<AlertDescription>You are signed in with Google.</AlertDescription>
+		</Alert>
+	{/if}
+
+	<!-- Disconnect Google Button (Situations A, C, D, E, F) -->
+	{#if hasGoogleProvider}
+		<div class="space-y-2">
+			<Label>Google Account</Label>
+			<Button
+				type="button"
+				variant="outline"
+				size="sm"
+				onclick={handleDisconnectGoogle}
+				disabled={loading || disconnectingGoogle || !!successMessage || !canDisconnectGoogle}
+			>
+				{#if disconnectingGoogle}
+					<Spinner class="size-4" />
+				{:else}
+					<Unlink class="size-4" />
+				{/if}
+				Disconnect Google
+			</Button>
+			{#if !canDisconnectGoogle}
+				<p class="text-sm text-muted-foreground">
+					Please set a password first before disconnecting Google.
+				</p>
+			{/if}
+		</div>
 	{/if}
 
 	<!-- Email Section -->
@@ -233,26 +485,46 @@
 		<Label>Email</Label>
 		{#if !editingEmail}
 			<div class="flex items-center gap-2">
-				<span class="text-sm">{$userProfile?.email || 'N/A'}</span>
-				<Button
-					type="button"
-					variant="ghost"
-					size="sm"
-					onclick={handleEditEmail}
-					disabled={loading || !!successMessage}
-				>
-					<Pencil class="size-4" />
-					Edit
-				</Button>
+				<span class="text-sm">{displayEmail}</span>
+				{#if canEditEmail}
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						onclick={handleEditEmail}
+						disabled={loading || !!successMessage}
+					>
+						<Pencil class="size-4" />
+						Edit
+					</Button>
+				{:else if hasGoogleProvider}
+					<p class="text-sm text-muted-foreground">
+						Set a password to edit your email
+					</p>
+				{/if}
 			</div>
 		{:else}
 			<div class="space-y-3">
-				<Input
-					type="email"
-					bind:value={newEmail}
-					disabled={loading}
-					placeholder="Enter new email"
-				/>
+				<div class="space-y-2">
+					<Label for="newEmail">New Email</Label>
+					<Input
+						id="newEmail"
+						type="email"
+						bind:value={newEmail}
+						disabled={loading}
+						placeholder="Enter new email"
+					/>
+				</div>
+				<div class="space-y-2">
+					<Label for="currentPasswordForEmail">Current Password</Label>
+					<Input
+						id="currentPasswordForEmail"
+						type="password"
+						bind:value={currentPasswordForEmail}
+						disabled={loading}
+						placeholder="Enter your password to confirm"
+					/>
+				</div>
 				<div class="flex gap-2">
 					<Button
 						type="button"
@@ -280,79 +552,169 @@
 		{/if}
 	</div>
 
-	<!-- Password Section -->
-	<div class="space-y-2">
-		<Label>Password</Label>
-		{#if !editingPassword}
-			<div class="flex items-center gap-2">
-				<span class="text-sm">••••••••</span>
-				<Button
-					type="button"
-					variant="ghost"
-					size="sm"
-					onclick={handleEditPassword}
-					disabled={loading || !!successMessage}
-				>
-					<Pencil class="size-4" />
-					Edit
-				</Button>
-			</div>
-		{:else}
-			<div class="space-y-3">
-				<div class="space-y-2">
-					<Label for="oldPassword">Current Password</Label>
-					<Input
-						id="oldPassword"
-						type="password"
-						bind:value={oldPassword}
-						disabled={loading}
-						placeholder="Enter current password"
-					/>
-				</div>
-				<div class="space-y-2">
-					<Label for="newPassword">New Password</Label>
-					<Input
-						id="newPassword"
-						type="password"
-						bind:value={newPassword}
-						disabled={loading}
-						placeholder="Enter new password"
-					/>
-				</div>
-				<div class="space-y-2">
-					<Label for="confirmPassword">Confirm New Password</Label>
-					<Input
-						id="confirmPassword"
-						type="password"
-						bind:value={confirmPassword}
-						disabled={loading}
-						placeholder="Confirm new password"
-					/>
-				</div>
-				<div class="flex gap-2">
+	<!-- Password Section - Show for users with email/password provider -->
+	{#if hasEmailPasswordProvider}
+		<div class="space-y-2">
+			<Label>Password</Label>
+			{#if !editingPassword}
+				<div class="flex items-center gap-2">
+					<span class="text-sm">••••••••</span>
 					<Button
 						type="button"
-						variant="default"
+						variant="ghost"
 						size="sm"
-						onclick={handleSavePassword}
-						disabled={loading}
+						onclick={handleEditPassword}
+						disabled={loading || !!successMessage}
 					>
-						{#if loading}
-							<Spinner class="size-4" />
-						{/if}
-						Save
+						<Pencil class="size-4" />
+						Edit
 					</Button>
+				</div>
+			{:else}
+				<div class="space-y-3">
+					<div class="space-y-2">
+						<Label for="oldPassword">Current Password</Label>
+						<Input
+							id="oldPassword"
+							type="password"
+							bind:value={oldPassword}
+							disabled={loading}
+							placeholder="Enter current password"
+						/>
+					</div>
+					<div class="space-y-2">
+						<Label for="newPassword">New Password</Label>
+						<Input
+							id="newPassword"
+							type="password"
+							bind:value={newPassword}
+							disabled={loading}
+							placeholder="Enter new password"
+						/>
+					</div>
+					<div class="space-y-2">
+						<Label for="confirmPassword">Confirm New Password</Label>
+						<Input
+							id="confirmPassword"
+							type="password"
+							bind:value={confirmPassword}
+							disabled={loading}
+							placeholder="Confirm new password"
+						/>
+					</div>
+					<div class="flex gap-2">
+						<Button
+							type="button"
+							variant="default"
+							size="sm"
+							onclick={handleSavePassword}
+							disabled={loading}
+						>
+							{#if loading}
+								<Spinner class="size-4" />
+							{/if}
+							Save
+						</Button>
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onclick={handleCancelPassword}
+							disabled={loading}
+						>
+							Cancel
+						</Button>
+					</div>
+				</div>
+			{/if}
+		</div>
+	{/if}
+
+	<!-- Set Password Section - Show for Google-only users -->
+	{#if !hasEmailPasswordProvider && hasGoogleProvider}
+		<div class="space-y-2">
+			<Label>Password</Label>
+			{#if !settingPassword}
+				<div class="space-y-2">
+					<p class="text-sm text-muted-foreground">No password set</p>
 					<Button
 						type="button"
 						variant="outline"
 						size="sm"
-						onclick={handleCancelPassword}
-						disabled={loading}
+						onclick={handleSetPassword}
+						disabled={loading || !!successMessage}
 					>
-						Cancel
+						Set Password
 					</Button>
 				</div>
-			</div>
-		{/if}
-	</div>
+			{:else}
+				<div class="space-y-3">
+					<div class="space-y-2">
+						<Label for="newPasswordSet">New Password</Label>
+						<Input
+							id="newPasswordSet"
+							type="password"
+							bind:value={newPassword}
+							disabled={loading}
+							placeholder="Enter new password"
+						/>
+					</div>
+					<div class="space-y-2">
+						<Label for="confirmPasswordSet">Confirm Password</Label>
+						<Input
+							id="confirmPasswordSet"
+							type="password"
+							bind:value={confirmPassword}
+							disabled={loading}
+							placeholder="Confirm password"
+						/>
+					</div>
+					<div class="flex gap-2">
+						<Button
+							type="button"
+							variant="default"
+							size="sm"
+							onclick={handleSetInitialPassword}
+							disabled={loading}
+						>
+							{#if loading}
+								<Spinner class="size-4" />
+							{/if}
+							Set Password
+						</Button>
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onclick={handleCancelPassword}
+							disabled={loading}
+						>
+							Cancel
+						</Button>
+					</div>
+				</div>
+			{/if}
+		</div>
+	{/if}
+
+	<!-- Connect Google Button - Show for email/password only users -->
+	{#if hasEmailPasswordProvider && !hasGoogleProvider}
+		<div class="space-y-2">
+			<Label>Google Account</Label>
+			<Button
+				type="button"
+				variant="outline"
+				size="sm"
+				onclick={handleConnectGoogle}
+				disabled={loading || connectingGoogle || !!successMessage}
+			>
+				{#if connectingGoogle}
+					<Spinner class="size-4" />
+				{:else}
+					<img src="/google-icon.svg" alt="Google" class="size-4" />
+				{/if}
+				Connect Google
+			</Button>
+		</div>
+	{/if}
 </div>

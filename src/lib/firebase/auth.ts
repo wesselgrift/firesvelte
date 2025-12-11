@@ -8,6 +8,8 @@ import {
 	sendEmailVerification,
 	sendPasswordResetEmail,
 	onAuthStateChanged,
+	linkWithPopup,
+	unlink,
 	type User
 } from 'firebase/auth';
 import { auth } from './firebase';
@@ -163,6 +165,64 @@ export async function resetPassword(email: string) {
 		return { error: null };
 	} catch (error: any) {
 		return { error: error.message };
+	}
+}
+
+// Links Google provider to the current user account
+export async function linkGoogleProvider() {
+	try {
+		const user = auth.currentUser;
+		if (!user) {
+			return { error: 'No user signed in' };
+		}
+
+		const userCredential = await linkWithPopup(user, googleProvider);
+		await ensureServerSession(userCredential.user, true);
+		await invalidateAll();
+
+		return { user: userCredential.user, error: null };
+	} catch (error: any) {
+		// Handle specific Firebase errors
+		if (error.code === 'auth/provider-already-linked') {
+			return { user: null, error: 'Google account is already linked to this account' };
+		}
+		if (error.code === 'auth/credential-already-in-use') {
+			return { user: null, error: 'This Google account is already associated with another account' };
+		}
+		if (error.code === 'auth/requires-recent-login') {
+			return { user: null, error: 'Please sign in again to link your Google account' };
+		}
+		return { user: null, error: error.message || 'Failed to link Google account' };
+	}
+}
+
+// Unlinks Google provider from the current user account
+export async function unlinkGoogleProvider() {
+	try {
+		const user = auth.currentUser;
+		if (!user) {
+			return { error: 'No user signed in' };
+		}
+
+		// Check if user has email/password provider before unlinking
+		const hasEmailPassword = user.providerData.some((provider) => provider.providerId === 'password');
+		if (!hasEmailPassword) {
+			return { error: 'Cannot unlink Google. Please set a password first.' };
+		}
+
+		const unlinkedUser = await unlink(user, 'google.com');
+		await ensureServerSession(unlinkedUser, true);
+		await invalidateAll();
+
+		return { user: unlinkedUser, error: null };
+	} catch (error: any) {
+		if (error.code === 'auth/no-such-provider') {
+			return { user: null, error: 'Google account is not linked to this account' };
+		}
+		if (error.code === 'auth/requires-recent-login') {
+			return { user: null, error: 'Please sign in again to unlink your Google account' };
+		}
+		return { user: null, error: error.message || 'Failed to unlink Google account' };
 	}
 }
 
