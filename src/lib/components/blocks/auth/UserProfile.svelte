@@ -10,7 +10,7 @@
 	import { Spinner } from '$lib/components/ui/spinner';
 
 	// Icons
-	import { Pencil, CircleAlert, CircleCheck, Unlink } from '@lucide/svelte';
+	import { Pencil, CircleAlert, CircleCheck } from '@lucide/svelte';
 
 	// Firebase auth
 	import { logout, linkGoogleProvider, unlinkGoogleProvider } from '$lib/firebase/auth';
@@ -447,45 +447,43 @@
 
 	<!-- Google Sign-in Alert (Situations A, C, D, E, F) -->
 	{#if hasGoogleProvider}
-		<Alert>
-			<CircleCheck />
-			<AlertTitle>Signed in with Google</AlertTitle>
-			<AlertDescription>You are signed in with Google.</AlertDescription>
-		</Alert>
-	{/if}
-
-	<!-- Disconnect Google Button (Situations A, C, D, E, F) -->
-	{#if hasGoogleProvider}
-		<div class="space-y-2">
-			<Label>Google Account</Label>
-			<Button
-				type="button"
-				variant="outline"
-				size="sm"
-				onclick={handleDisconnectGoogle}
-				disabled={loading || disconnectingGoogle || !!successMessage || !canDisconnectGoogle}
-			>
-				{#if disconnectingGoogle}
-					<Spinner class="size-4" />
-				{:else}
-					<Unlink class="size-4" />
-				{/if}
-				Disconnect Google
-			</Button>
-			{#if !canDisconnectGoogle}
-				<p class="text-sm text-muted-foreground">
-					Please set a password first before disconnecting Google.
-				</p>
-			{/if}
-		</div>
+        <div class="flex items-start justify-start gap-3 border rounded-lg p-4 bg-card">
+            <img src="/google-icon.svg" alt="Google" class="size-4" />
+            <div class="flex flex-col gap-1.5 items-start">
+                <span class="text-sm font-medium  leading-tight">Google</span>
+                <span class="text-sm text-muted-foreground">You have connected your Google account.</span>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onclick={handleDisconnectGoogle}
+                    disabled={loading || disconnectingGoogle || !!successMessage || !canDisconnectGoogle}
+                >
+                    {#if disconnectingGoogle}
+                        <Spinner class="size-4" />
+                    {/if}
+                    Disconnect
+                </Button>
+                {#if !canDisconnectGoogle}
+                    <p class="text-sm text-muted-foreground">
+                        Please set a password first before disconnecting Google.
+                    </p>
+                {/if}
+            </div>
+        </div>
 	{/if}
 
 	<!-- Email Section -->
 	<div class="space-y-2">
-		<Label>Email</Label>
 		{#if !editingEmail}
+            <Label>Email</Label>
 			<div class="flex items-center gap-2">
-				<span class="text-sm">{displayEmail}</span>
+                <Input
+                    id="Email"
+                    type="email"
+                    disabled={true}
+                    value={displayEmail}
+                />
 				{#if canEditEmail}
 					<Button
 						type="button"
@@ -555,10 +553,15 @@
 	<!-- Password Section - Show for users with email/password provider -->
 	{#if hasEmailPasswordProvider}
 		<div class="space-y-2">
-			<Label>Password</Label>
 			{#if !editingPassword}
+                <Label>Password</Label>
 				<div class="flex items-center gap-2">
-					<span class="text-sm">••••••••</span>
+                    <Input
+                        id="Password"
+                        type="password"
+                        disabled={true}
+                        value="••••••••"
+                    />
 					<Button
 						type="button"
 						variant="ghost"
