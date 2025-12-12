@@ -10,7 +10,7 @@
 	import { Spinner } from '$lib/components/ui/spinner';
 
 	// Icons
-	import { Pencil, CircleAlert, CircleCheck, IdCardLanyard, MailIcon, RectangleEllipsisIcon } from '@lucide/svelte';
+	import { DoorOpen, CircleAlert, CircleCheck, IdCardLanyard, MailIcon, RectangleEllipsisIcon } from '@lucide/svelte';
 
 	// Firebase auth
 	import { logout, linkGoogleProvider, unlinkGoogleProvider } from '$lib/firebase/auth';
@@ -24,6 +24,7 @@
 	} from 'firebase/auth';
 	import { auth } from '$lib/firebase/firebase';
 	import { invalidateAll } from '$app/navigation';
+
 
 	// State management
 	let editingEmail = $state(false);
@@ -426,231 +427,25 @@
 	}
 </script>
 
-<div class="space-y-6 mt-6">
-	<!-- Error Alert -->
-	{#if error}
-		<Alert variant="destructive">
-			<CircleAlert />
-			<AlertTitle>Error</AlertTitle>
-			<AlertDescription>{error}</AlertDescription>
-		</Alert>
-	{/if}
 
-	<!-- Success Alert -->
-	{#if successMessage}
-		<Alert>
-			<CircleCheck />
-			<AlertTitle>Success</AlertTitle>
-			<AlertDescription>{successMessage}</AlertDescription>
-		</Alert>
-	{/if}
+<div class="flex flex-col border border-border rounded-lg bg-card">
 
-        <!-- Google Sign-in Alert (Situations A, C, D, E, F) -->
-	{#if hasGoogleProvider}
-        <div class="flex items-start justify-start gap-3 border rounded-lg p-4 bg-card">
-            <img src="/google-icon.svg" alt="Google" class="size-4" />
-            <div class="flex flex-col gap-1.5 items-start">
-                <span class="text-sm font-medium  leading-tight">Google</span>
-                <span class="text-sm text-muted-foreground pb-2">You have connected your Google account.</span>
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onclick={handleDisconnectGoogle}
-                    disabled={loading || disconnectingGoogle || !!successMessage || !canDisconnectGoogle}
-                >
-                    {#if disconnectingGoogle}
-                        <Spinner class="size-4" />
-                    {/if}
-                    Disconnect
-                </Button>
-                {#if !canDisconnectGoogle}
-                    <p class="text-sm text-muted-foreground">
-                        Please set a password first before disconnecting Google.
-                    </p>
-                {/if}
-            </div>
-        </div>
+    {#if error}
+        <Alert variant="destructive">
+            <CircleAlert />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+        </Alert>
     {/if}
 
-    <!-- Connect Google Button - Show for email/password only users -->
-    {#if hasEmailPasswordProvider && !hasGoogleProvider}
-        <div class="space-y-2">
-            <Label>Google Account</Label>
-            <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onclick={handleConnectGoogle}
-                disabled={loading || connectingGoogle || !!successMessage}
-            >
-                {#if connectingGoogle}
-                    <Spinner class="size-4" />
-                {:else}
-                    <img src="/google-icon.svg" alt="Google" class="size-4" />
-                {/if}
-                Connect Google
-            </Button>
-        </div>
+    <!-- Success Alert -->
+    {#if successMessage}
+        <Alert>
+            <CircleCheck />
+            <AlertTitle>Success</AlertTitle>
+            <AlertDescription>{successMessage}</AlertDescription>
+        </Alert>
     {/if}
-
-
-	<!-- Password Section - Show for users with email/password provider -->
-	{#if hasEmailPasswordProvider}
-		<!-- <div class="space-y-2"> -->
-			{#if !editingPassword}
-                <!-- <Label>Password</Label>
-				<div class="flex items-center gap-2 relative">
-                    <Input
-                        id="Password"
-                        type="password"
-                        disabled={true}
-                        value="••••••••"
-                    />
-					<Button
-						type="button"
-						variant="ghost"
-						size="sm"
-						onclick={handleEditPassword}
-						disabled={loading || !!successMessage}
-                        class="absolute right-1 rounded-sm"
-					>
-						<Pencil class="size-4" />
-						Edit
-					</Button>
-				</div> -->
-			{:else}
-				<!-- <div class="space-y-3">
-					<div class="space-y-2">
-						<Label for="oldPassword">Current Password</Label>
-						<Input
-							id="oldPassword"
-							type="password"
-							bind:value={oldPassword}
-							disabled={loading}
-							placeholder="Enter current password"
-						/>
-					</div>
-					<div class="space-y-2">
-						<Label for="newPassword">New Password</Label>
-						<Input
-							id="newPassword"
-							type="password"
-							bind:value={newPassword}
-							disabled={loading}
-							placeholder="Enter new password"
-						/>
-					</div>
-					<div class="space-y-2">
-						<Label for="confirmPassword">Confirm New Password</Label>
-						<Input
-							id="confirmPassword"
-							type="password"
-							bind:value={confirmPassword}
-							disabled={loading}
-							placeholder="Confirm new password"
-						/>
-					</div>
-					<div class="flex gap-2">
-						<Button
-							type="button"
-							variant="default"
-							size="sm"
-							onclick={handleSavePassword}
-							disabled={loading}
-						>
-							{#if loading}
-								<Spinner class="size-4" />
-							{/if}
-							Save
-						</Button>
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onclick={handleCancelPassword}
-							disabled={loading}
-						>
-							Cancel
-						</Button>
-					</div>
-				</div> -->
-			{/if}
-		<!-- </div> -->
-	{/if}
-
-	<!-- Set Password Section - Show for Google-only users -->
-	{#if !hasEmailPasswordProvider && hasGoogleProvider}
-		<!-- <div class="space-y-2">
-			<Label>Password</Label> -->
-			{#if !settingPassword}
-				<!-- <div class="space-y-2">
-					<p class="text-sm text-muted-foreground">No password set</p>
-					<Button
-						type="button"
-						variant="outline"
-						size="sm"
-						onclick={handleSetPassword}
-						disabled={loading || !!successMessage}
-					>
-						Set Password
-					</Button>
-				</div> -->
-			{:else}
-				<!-- <div class="space-y-3">
-					<div class="space-y-2">
-						<Label for="newPasswordSet">New Password</Label>
-						<Input
-							id="newPasswordSet"
-							type="password"
-							bind:value={newPassword}
-							disabled={loading}
-							placeholder="Enter new password"
-						/>
-					</div>
-					<div class="space-y-2">
-						<Label for="confirmPasswordSet">Confirm Password</Label>
-						<Input
-							id="confirmPasswordSet"
-							type="password"
-							bind:value={confirmPassword}
-							disabled={loading}
-							placeholder="Confirm password"
-						/>
-					</div>
-					<div class="flex gap-2">
-						<Button
-							type="button"
-							variant="default"
-							size="sm"
-							onclick={handleSetInitialPassword}
-							disabled={loading}
-						>
-							{#if loading}
-								<Spinner class="size-4" />
-							{/if}
-							Set Password
-						</Button>
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onclick={handleCancelPassword}
-							disabled={loading}
-						>
-							Cancel
-						</Button>
-					</div>
-				</div> -->
-			{/if}
-		<!-- </div> -->
-	{/if}
-
-</div>
-
-<div class="block h-10"></div>
-
-<div class="flex flex-col border border-border rounded-lg">
 
     <!-- Name container -->
     <div class="flex flex-row items-start gap-4 border-border border-b p-4">
@@ -686,7 +481,7 @@
                     Edit
                 </Button>
             {:else if hasGoogleProvider}
-                <p class="text-sm text-muted-foreground">
+                <p class="text-sm text-muted-foreground/50">
                     Set a password to edit your email
                 </p>
             {/if}
@@ -885,12 +680,64 @@
     </div>
 
     <!-- Google container -->
-    <div class="flex flex-row items-start gap-4 border-border p-4">
+    <div class="flex flex-row items-start gap-4 border-border border-b p-4">
         <img src="/google-icon.svg" alt="Google" class="size-5" />
         <div class="flex flex-col gap-1">
             <span class="text-sm font-medium">Google</span>
-            <span class="text-sm text-muted-foreground">Connected</span>
+            <span class="text-sm text-muted-foreground">
+                {#if hasGoogleProvider}
+                    Connected
+                {:else if hasEmailPasswordProvider && !hasGoogleProvider}
+                    Not connected
+                {/if}
+            </span>
         </div>
-        <Button class="ml-auto" variant="outline" size="sm">Disconnect</Button>
+        <div class="flex flex-row gap-4 ml-auto items-center">
+            {#if hasGoogleProvider && !hasEmailPasswordProvider}
+                <p class="leading-none text-sm text-muted-foreground/50">
+                    Set a password before disconnecting Google.
+                </p>
+            {/if}
+            <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onclick={hasGoogleProvider ? handleDisconnectGoogle : (hasEmailPasswordProvider && !hasGoogleProvider ? handleConnectGoogle : undefined)}
+                disabled={loading || disconnectingGoogle || connectingGoogle || !!successMessage || !canDisconnectGoogle}
+            >
+                {#if hasGoogleProvider}
+                    {#if disconnectingGoogle}
+                        <Spinner class="size-4" />
+                    {/if}
+                    Disconnect
+                {:else if hasEmailPasswordProvider && !hasGoogleProvider}
+                    {#if connectingGoogle}
+                        <Spinner class="size-4" />
+                    {/if}
+                    Connect
+                {/if}
+            </Button>
+        </div>
     </div>
+
+    <!-- Log-out -->
+     <div class="flex flex-row items-start gap-4 p-4">
+        <DoorOpen strokeWidth={1.5}/>
+        <div class="flex flex-col gap-1">
+            <span class="text-sm font-medium">Log out</span>
+            <span class="text-sm text-muted-foreground">
+                See you soon!
+            </span>
+        </div>
+
+        <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            onclick={() => logout()}
+            class="ml-auto"
+        >
+        Log out
+        </Button>
+     </div>
 </div>
