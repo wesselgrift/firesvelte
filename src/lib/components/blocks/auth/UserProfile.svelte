@@ -141,7 +141,7 @@
 			return;
 		}
 		editingEmail = true;
-		newEmail = displayEmail;
+		// newEmail = displayEmail;
 		currentPasswordForEmail = '';
 		error = '';
 		successMessage = '';
@@ -495,84 +495,6 @@
     {/if}
 
 
-	<!-- Email Section -->
-	<div class="space-y-2">
-		{#if !editingEmail}
-            <Label>Email</Label>
-			<div class="flex items-center gap-2 relative">
-                <Input
-                    id="Email"
-                    type="email"
-                    disabled={true}
-                    value={displayEmail}
-                />
-				{#if canEditEmail}
-					<Button
-						type="button"
-						variant="ghost"
-						size="sm"
-						onclick={handleEditEmail}
-						disabled={loading || !!successMessage}
-                        class="absolute right-1 rounded-sm"
-					>
-						<Pencil class="size-4" />
-						Edit
-					</Button>
-				{:else if hasGoogleProvider}
-					<p class="text-sm text-muted-foreground">
-						Set a password to edit your email
-					</p>
-				{/if}
-			</div>
-		{:else}
-			<div class="space-y-3">
-				<div class="space-y-2">
-					<Label for="newEmail">New Email</Label>
-					<Input
-						id="newEmail"
-						type="email"
-						bind:value={newEmail}
-						disabled={loading}
-						placeholder="Enter new email"
-					/>
-				</div>
-				<div class="space-y-2">
-					<Label for="currentPasswordForEmail">Current Password</Label>
-					<Input
-						id="currentPasswordForEmail"
-						type="password"
-						bind:value={currentPasswordForEmail}
-						disabled={loading}
-						placeholder="Enter your password to confirm"
-					/>
-				</div>
-				<div class="flex gap-2">
-					<Button
-						type="button"
-						variant="default"
-						size="sm"
-						onclick={handleSaveEmail}
-						disabled={loading}
-					>
-						{#if loading}
-							<Spinner class="size-4" />
-						{/if}
-						Save
-					</Button>
-					<Button
-						type="button"
-						variant="outline"
-						size="sm"
-						onclick={handleCancelEmail}
-						disabled={loading}
-					>
-						Cancel
-					</Button>
-				</div>
-			</div>
-		{/if}
-	</div>
-
 	<!-- Password Section - Show for users with email/password provider -->
 	{#if hasEmailPasswordProvider}
 		<div class="space-y-2">
@@ -726,6 +648,8 @@
 
 </div>
 
+<div class="block h-10"></div>
+
 <div class="flex flex-col border border-border rounded-lg">
     <div class="flex flex-row items-start gap-4 border-border border-b p-4">
         <IdCardLanyard strokeWidth={1.5} />
@@ -735,30 +659,78 @@
         </div>
         <Button class="ml-auto" variant="outline" size="sm">Edit</Button>
     </div>
-    <div class="flex flex-row items-start gap-4 border-border border-b p-4">
-        <MailIcon strokeWidth={1.5} />
-        <div class="flex flex-col gap-1">
-            <span class="text-sm font-medium">Email</span>
-            <span class="text-sm text-muted-foreground">{displayEmail}</span>
+    <div class="flex flex-col border-border border-b p-4">
+        <div class="flex flex-row justify-between">
+            <div class="flex flex-row items-start gap-4">
+                <MailIcon strokeWidth={1.5} />
+                <div class="flex flex-col gap-1">
+                    <span class="text-sm font-medium">Email</span>
+                    <span class="text-sm text-muted-foreground">{displayEmail}</span>
+                </div>
+            </div>
+            {#if canEditEmail}
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onclick={handleEditEmail}
+                    disabled={loading || !!successMessage || editingEmail}
+                    class="ml-auto"
+                >
+                    Edit
+                </Button>
+            {:else if hasGoogleProvider}
+                <p class="text-sm text-muted-foreground">
+                    Set a password to edit your email
+                </p>
+            {/if}
         </div>
-        {#if canEditEmail}
-            <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onclick={handleEditEmail}
-                disabled={loading || !!successMessage}
-                class="ml-auto"
-            >
-                Edit
-            </Button>
-        {:else if hasGoogleProvider}
-            <p class="text-sm text-muted-foreground">
-                Set a password to edit your email
-            </p>
-        {/if}
         {#if editingEmail}
-            Editting email here
+            <div class="space-y-3 pl-10 py-4 max-w-md">
+                <div class="space-y-2">
+                    <Label for="newEmail">New Email</Label>
+                    <Input
+                        id="newEmail"
+                        type="email"
+                        bind:value={newEmail}
+                        disabled={loading}
+                        placeholder="Enter new email"
+                    />
+                </div>
+                <div class="space-y-2">
+                    <Label for="currentPasswordForEmail">Current Password</Label>
+                    <Input
+                        id="currentPasswordForEmail"
+                        type="password"
+                        bind:value={currentPasswordForEmail}
+                        disabled={loading}
+                        placeholder="Enter your password to confirm"
+                    />
+                </div>
+                <div class="flex gap-2">
+                    <Button
+                        type="button"
+                        variant="default"
+                        size="sm"
+                        onclick={handleSaveEmail}
+                        disabled={loading}
+                    >
+                        {#if loading}
+                            <Spinner class="size-4" />
+                        {/if}
+                        Save
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onclick={handleCancelEmail}
+                        disabled={loading}
+                    >
+                        Cancel
+                    </Button>
+                </div>
+            </div>
         {/if}
     </div>
     <div class="flex flex-row items-start gap-4 border-border border-b p-4">
