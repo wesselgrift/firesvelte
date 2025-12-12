@@ -1,10 +1,11 @@
 # SV Starter
 
-An opinionated SvelteKit 2 + Svelte 5 starter for Firebase-authenticated apps. Includes production-ready auth flows, shadcn-svelte UI, Tailwind CSS v4, and server-side sessions synced with Firebase.
+An opinionated SvelteKit 2 + Svelte 5 starter with Firebase Authentication and JWT session cookies. Includes production-ready auth flows, shadcn-svelte UI, Tailwind CSS v4, and server-side sessions using JWT tokens.
 
 ## Highlights
 
 - Email/password + Google auth (signup, login, reset, verification)
+- Account management (update name, email, password, disconnect Google)
 - Secure session cookies via `/api/auth/login` & `/api/auth/logout`, protected routes in `src/hooks.server.ts`
 - Firestore `users/{uid}` profiles hydrating `userProfile` store
 - shadcn-svelte components in `lib/components/ui` (add more via CLI)
@@ -116,9 +117,9 @@ Routes protected in `src/hooks.server.ts`: verifies session cookie, stores claim
 ### Auth flow
 
 1. Forms call `src/lib/firebase/auth.ts` helpers
-2. `ensureServerSession` POSTs to `/api/auth/login` after Firebase auth
-3. Server verifies ID token, sets 5-day `session` cookie, upserts Firestore profile
-4. `src/hooks.server.ts` reads cookie for SSR-aware auth
+2. `ensureServerSession` POSTs Firebase ID token to `/api/auth/login` after Firebase auth
+3. Server verifies ID token, creates JWT session cookie (5-day expiry), upserts Firestore profile
+4. `src/hooks.server.ts` verifies JWT session cookie for SSR-aware auth
 5. Protected layouts (`src/routes/app/+layout.server.ts`) fetch Firestore profile, expose via `userProfile` store
 
 ### UI & utilities
