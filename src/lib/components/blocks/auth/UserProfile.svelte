@@ -508,25 +508,24 @@
 	}
 </script>
 
+{#if error}
+    <Alert variant="destructive" class="mb-4">
+        <CircleAlert />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+    </Alert>
+{/if}
+
+<!-- Success Alert -->
+{#if successMessage}
+    <Alert class="text-green-700 dark:text-green-500 mb-4">
+        <CircleCheck />
+        <AlertTitle>Success</AlertTitle>
+        <AlertDescription>{successMessage}</AlertDescription>
+    </Alert>
+{/if}
 
 <div class="flex flex-col border border-border rounded-lg bg-card">
-
-    {#if error}
-        <Alert variant="destructive">
-            <CircleAlert />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-        </Alert>
-    {/if}
-
-    <!-- Success Alert -->
-    {#if successMessage}
-        <Alert>
-            <CircleCheck />
-            <AlertTitle>Success</AlertTitle>
-            <AlertDescription>{successMessage}</AlertDescription>
-        </Alert>
-    {/if}
 
     <!-- Name container -->
     <div class="flex flex-col border-border border-b p-4">
