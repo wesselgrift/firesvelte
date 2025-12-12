@@ -10,7 +10,7 @@
 	import { Spinner } from '$lib/components/ui/spinner';
 
 	// Icons
-	import { Pencil, CircleAlert, CircleCheck } from '@lucide/svelte';
+	import { Pencil, CircleAlert, CircleCheck, IdCardLanyard, MailIcon, RectangleEllipsisIcon } from '@lucide/svelte';
 
 	// Firebase auth
 	import { logout, linkGoogleProvider, unlinkGoogleProvider } from '$lib/firebase/auth';
@@ -445,12 +445,61 @@
 		</Alert>
 	{/if}
 
+        <!-- Google Sign-in Alert (Situations A, C, D, E, F) -->
+	{#if hasGoogleProvider}
+        <div class="flex items-start justify-start gap-3 border rounded-lg p-4 bg-card">
+            <img src="/google-icon.svg" alt="Google" class="size-4" />
+            <div class="flex flex-col gap-1.5 items-start">
+                <span class="text-sm font-medium  leading-tight">Google</span>
+                <span class="text-sm text-muted-foreground pb-2">You have connected your Google account.</span>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onclick={handleDisconnectGoogle}
+                    disabled={loading || disconnectingGoogle || !!successMessage || !canDisconnectGoogle}
+                >
+                    {#if disconnectingGoogle}
+                        <Spinner class="size-4" />
+                    {/if}
+                    Disconnect
+                </Button>
+                {#if !canDisconnectGoogle}
+                    <p class="text-sm text-muted-foreground">
+                        Please set a password first before disconnecting Google.
+                    </p>
+                {/if}
+            </div>
+        </div>
+    {/if}
+
+    <!-- Connect Google Button - Show for email/password only users -->
+    {#if hasEmailPasswordProvider && !hasGoogleProvider}
+        <div class="space-y-2">
+            <Label>Google Account</Label>
+            <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onclick={handleConnectGoogle}
+                disabled={loading || connectingGoogle || !!successMessage}
+            >
+                {#if connectingGoogle}
+                    <Spinner class="size-4" />
+                {:else}
+                    <img src="/google-icon.svg" alt="Google" class="size-4" />
+                {/if}
+                Connect Google
+            </Button>
+        </div>
+    {/if}
+
 
 	<!-- Email Section -->
 	<div class="space-y-2">
 		{#if !editingEmail}
             <Label>Email</Label>
-			<div class="flex items-center gap-2">
+			<div class="flex items-center gap-2 relative">
                 <Input
                     id="Email"
                     type="email"
@@ -464,6 +513,7 @@
 						size="sm"
 						onclick={handleEditEmail}
 						disabled={loading || !!successMessage}
+                        class="absolute right-1 rounded-sm"
 					>
 						<Pencil class="size-4" />
 						Edit
@@ -528,7 +578,7 @@
 		<div class="space-y-2">
 			{#if !editingPassword}
                 <Label>Password</Label>
-				<div class="flex items-center gap-2">
+				<div class="flex items-center gap-2 relative">
                     <Input
                         id="Password"
                         type="password"
@@ -541,6 +591,7 @@
 						size="sm"
 						onclick={handleEditPassword}
 						disabled={loading || !!successMessage}
+                        class="absolute right-1 rounded-sm"
 					>
 						<Pencil class="size-4" />
 						Edit
@@ -673,53 +724,57 @@
 		</div>
 	{/if}
 
-    <!-- Google Sign-in Alert (Situations A, C, D, E, F) -->
-	{#if hasGoogleProvider}
-        <div class="flex items-start justify-start gap-3 border rounded-lg p-4 bg-card">
-            <img src="/google-icon.svg" alt="Google" class="size-4" />
-            <div class="flex flex-col gap-1.5 items-start">
-                <span class="text-sm font-medium  leading-tight">Google</span>
-                <span class="text-sm text-muted-foreground pb-2">You have connected your Google account.</span>
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onclick={handleDisconnectGoogle}
-                    disabled={loading || disconnectingGoogle || !!successMessage || !canDisconnectGoogle}
-                >
-                    {#if disconnectingGoogle}
-                        <Spinner class="size-4" />
-                    {/if}
-                    Disconnect
-                </Button>
-                {#if !canDisconnectGoogle}
-                    <p class="text-sm text-muted-foreground">
-                        Please set a password first before disconnecting Google.
-                    </p>
-                {/if}
-            </div>
-        </div>
-    {/if}
+</div>
 
-    <!-- Connect Google Button - Show for email/password only users -->
-    {#if hasEmailPasswordProvider && !hasGoogleProvider}
-        <div class="space-y-2">
-            <Label>Google Account</Label>
+<div class="flex flex-col border border-border rounded-lg">
+    <div class="flex flex-row items-start gap-4 border-border border-b p-4">
+        <IdCardLanyard strokeWidth={1.5} />
+        <div class="flex flex-col gap-1">
+            <span class="text-sm font-medium">Name</span>
+            <span class="text-sm text-muted-foreground">{$userProfile?.firstName ?? 'N/A'} {$userProfile?.lastName ?? 'N/A'}</span>
+        </div>
+        <Button class="ml-auto" variant="outline" size="sm">Edit</Button>
+    </div>
+    <div class="flex flex-row items-start gap-4 border-border border-b p-4">
+        <MailIcon strokeWidth={1.5} />
+        <div class="flex flex-col gap-1">
+            <span class="text-sm font-medium">Email</span>
+            <span class="text-sm text-muted-foreground">{displayEmail}</span>
+        </div>
+        {#if canEditEmail}
             <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                onclick={handleConnectGoogle}
-                disabled={loading || connectingGoogle || !!successMessage}
+                onclick={handleEditEmail}
+                disabled={loading || !!successMessage}
+                class="ml-auto"
             >
-                {#if connectingGoogle}
-                    <Spinner class="size-4" />
-                {:else}
-                    <img src="/google-icon.svg" alt="Google" class="size-4" />
-                {/if}
-                Connect Google
+                Edit
             </Button>
+        {:else if hasGoogleProvider}
+            <p class="text-sm text-muted-foreground">
+                Set a password to edit your email
+            </p>
+        {/if}
+        {#if editingEmail}
+            Editting email here
+        {/if}
+    </div>
+    <div class="flex flex-row items-start gap-4 border-border border-b p-4">
+        <RectangleEllipsisIcon strokeWidth={1.5} />
+        <div class="flex flex-col gap-1">
+            <span class="text-sm font-medium">Password</span>
+            <span class="text-sm text-muted-foreground">Configured</span>
         </div>
-    {/if}
-
+        <Button class="ml-auto" variant="outline" size="sm">Change</Button>
+    </div>
+    <div class="flex flex-row items-start gap-4 border-border p-4">
+        <img src="/google-icon.svg" alt="Google" class="size-5" />
+        <div class="flex flex-col gap-1">
+            <span class="text-sm font-medium">Google</span>
+            <span class="text-sm text-muted-foreground">Connected</span>
+        </div>
+        <Button class="ml-auto" variant="outline" size="sm">Disconnect</Button>
+    </div>
 </div>
