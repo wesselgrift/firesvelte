@@ -453,7 +453,7 @@
 
 			// Sign out after a short delay so user can see the message
 			setTimeout(() => {
-				logout('/login');
+				logout();
 			}, 2000);
 		} catch (err: any) {
 			error = err.message || 'An error occurred';
@@ -539,7 +539,7 @@
 
 			// Logout after 2 seconds
 			setTimeout(() => {
-				logout('/login');
+				logout();
 			}, 2000);
 		} catch (err: any) {
 			error = err.message || 'An error occurred';
