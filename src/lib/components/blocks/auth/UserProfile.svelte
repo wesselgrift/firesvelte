@@ -497,9 +497,9 @@
 
 	<!-- Password Section - Show for users with email/password provider -->
 	{#if hasEmailPasswordProvider}
-		<div class="space-y-2">
+		<!-- <div class="space-y-2"> -->
 			{#if !editingPassword}
-                <Label>Password</Label>
+                <!-- <Label>Password</Label>
 				<div class="flex items-center gap-2 relative">
                     <Input
                         id="Password"
@@ -518,9 +518,9 @@
 						<Pencil class="size-4" />
 						Edit
 					</Button>
-				</div>
+				</div> -->
 			{:else}
-				<div class="space-y-3">
+				<!-- <div class="space-y-3">
 					<div class="space-y-2">
 						<Label for="oldPassword">Current Password</Label>
 						<Input
@@ -574,17 +574,17 @@
 							Cancel
 						</Button>
 					</div>
-				</div>
+				</div> -->
 			{/if}
-		</div>
+		<!-- </div> -->
 	{/if}
 
 	<!-- Set Password Section - Show for Google-only users -->
 	{#if !hasEmailPasswordProvider && hasGoogleProvider}
-		<div class="space-y-2">
-			<Label>Password</Label>
+		<!-- <div class="space-y-2">
+			<Label>Password</Label> -->
 			{#if !settingPassword}
-				<div class="space-y-2">
+				<!-- <div class="space-y-2">
 					<p class="text-sm text-muted-foreground">No password set</p>
 					<Button
 						type="button"
@@ -595,9 +595,9 @@
 					>
 						Set Password
 					</Button>
-				</div>
+				</div> -->
 			{:else}
-				<div class="space-y-3">
+				<!-- <div class="space-y-3">
 					<div class="space-y-2">
 						<Label for="newPasswordSet">New Password</Label>
 						<Input
@@ -641,9 +641,9 @@
 							Cancel
 						</Button>
 					</div>
-				</div>
+				</div> -->
 			{/if}
-		</div>
+		<!-- </div> -->
 	{/if}
 
 </div>
@@ -651,6 +651,8 @@
 <div class="block h-10"></div>
 
 <div class="flex flex-col border border-border rounded-lg">
+
+    <!-- Name container -->
     <div class="flex flex-row items-start gap-4 border-border border-b p-4">
         <IdCardLanyard strokeWidth={1.5} />
         <div class="flex flex-col gap-1">
@@ -659,7 +661,11 @@
         </div>
         <Button class="ml-auto" variant="outline" size="sm">Edit</Button>
     </div>
+
+    <!-- Email container -->
     <div class="flex flex-col border-border border-b p-4">
+
+        <!-- Email / display row & edit button -->
         <div class="flex flex-row justify-between">
             <div class="flex flex-row items-start gap-4">
                 <MailIcon strokeWidth={1.5} />
@@ -685,6 +691,8 @@
                 </p>
             {/if}
         </div>
+
+        <!-- Email / edit row (only visible when editting) -->
         {#if editingEmail}
             <div class="space-y-3 pl-10 py-4 max-w-md">
                 <div class="space-y-2">
@@ -733,14 +741,150 @@
             </div>
         {/if}
     </div>
-    <div class="flex flex-row items-start gap-4 border-border border-b p-4">
-        <RectangleEllipsisIcon strokeWidth={1.5} />
-        <div class="flex flex-col gap-1">
-            <span class="text-sm font-medium">Password</span>
-            <span class="text-sm text-muted-foreground">Configured</span>
+
+    <!-- Password container -->
+    <div class="flex flex-col border-border border-b p-4">
+
+        <!-- Password / display row & edit button -->
+        <div class="flex flex-row justify-between">
+            <div class="flex flex-row items-start gap-4">
+                <RectangleEllipsisIcon strokeWidth={1.5} />
+                <div class="flex flex-col gap-1">
+                    <span class="text-sm font-medium">Password</span>
+                    <span class="text-sm text-muted-foreground">
+                        {#if hasEmailPasswordProvider}
+                            •••••••••••
+                        {:else if !hasEmailPasswordProvider && hasGoogleProvider}
+                            No password set
+                        {/if}
+                    </span>
+                </div>
+            </div>
+            <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onclick={hasEmailPasswordProvider ? handleEditPassword : (!hasEmailPasswordProvider && hasGoogleProvider ? handleSetPassword : undefined)}
+                disabled={loading || !!successMessage || editingPassword || settingPassword}
+                class="ml-auto"
+            >
+                {#if hasEmailPasswordProvider}
+                    Change password
+                {:else if !hasEmailPasswordProvider && hasGoogleProvider}
+                    Set password
+                {/if}
+            </Button>
         </div>
-        <Button class="ml-auto" variant="outline" size="sm">Change</Button>
+
+        <!-- Password / edit row -->
+        {#if editingPassword}
+            <div class="space-y-3 pl-10 py-4 max-w-md">
+                <div class="space-y-2">
+                    <Label for="oldPassword">Current Password</Label>
+                    <Input
+                        id="oldPassword"
+                        type="password"
+                        bind:value={oldPassword}
+                        disabled={loading}
+                        placeholder="Enter current password"
+                    />
+                </div>
+                <div class="space-y-2">
+                    <Label for="newPassword">New Password</Label>
+                    <Input
+                        id="newPassword"
+                        type="password"
+                        bind:value={newPassword}
+                        disabled={loading}
+                        placeholder="Enter new password"
+                    />
+                </div>
+                <div class="space-y-2">
+                    <Label for="confirmPassword">Confirm New Password</Label>
+                    <Input
+                        id="confirmPassword"
+                        type="password"
+                        bind:value={confirmPassword}
+                        disabled={loading}
+                        placeholder="Confirm new password"
+                    />
+                </div>
+                <div class="flex gap-2">
+                    <Button
+                        type="button"
+                        variant="default"
+                        size="sm"
+                        onclick={handleSavePassword}
+                        disabled={loading}
+                    >
+                        {#if loading}
+                            <Spinner class="size-4" />
+                        {/if}
+                        Save
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onclick={handleCancelPassword}
+                        disabled={loading}
+                    >
+                        Cancel
+                    </Button>
+                </div>
+            </div>
+        {/if}
+
+        {#if settingPassword}
+            <div class="space-y-3 pl-10 py-4 max-w-md">
+                <div class="space-y-2">
+                    <Label for="newPasswordSet">New Password</Label>
+                    <Input
+                        id="newPasswordSet"
+                        type="password"
+                        bind:value={newPassword}
+                        disabled={loading}
+                        placeholder="Enter new password"
+                    />
+                </div>
+                <div class="space-y-2">
+                    <Label for="confirmPasswordSet">Confirm Password</Label>
+                    <Input
+                        id="confirmPasswordSet"
+                        type="password"
+                        bind:value={confirmPassword}
+                        disabled={loading}
+                        placeholder="Confirm password"
+                    />
+                </div>
+                <div class="flex gap-2">
+                    <Button
+                        type="button"
+                        variant="default"
+                        size="sm"
+                        onclick={handleSetInitialPassword}
+                        disabled={loading}
+                    >
+                        {#if loading}
+                            <Spinner class="size-4" />
+                        {/if}
+                        Set Password
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onclick={handleCancelPassword}
+                        disabled={loading}
+                    >
+                        Cancel
+                    </Button>
+                </div>
+            </div>
+        {/if}
     </div>
+
+    <!-- Google container -->
     <div class="flex flex-row items-start gap-4 border-border p-4">
         <img src="/google-icon.svg" alt="Google" class="size-5" />
         <div class="flex flex-col gap-1">
