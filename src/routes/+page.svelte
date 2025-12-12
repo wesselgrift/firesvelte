@@ -12,7 +12,7 @@
 				Welcome to SvelteKit Starter
 			</h1>
 			<p class="text-lg text-muted-foreground">
-				A modern boilerplate for building digital products with SvelteKit, Firebase, and
+				A modern boilerplate for building digital products with SvelteKit, Firebase auth and database, and
 				shadcn-svelte.
 			</p>
 		</div>
