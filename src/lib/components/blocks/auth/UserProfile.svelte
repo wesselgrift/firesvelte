@@ -454,14 +454,14 @@
             <span class="text-sm font-medium">Name</span>
             <span class="text-sm text-muted-foreground">{$userProfile?.firstName ?? 'N/A'} {$userProfile?.lastName ?? 'N/A'}</span>
         </div>
-        <Button class="ml-auto" variant="outline" size="sm">Edit</Button>
+        <Button class="ml-auto" variant="outline" size="sm">Change name</Button>
     </div>
 
     <!-- Email container -->
     <div class="flex flex-col border-border border-b p-4">
 
         <!-- Email / display row & edit button -->
-        <div class="flex flex-row justify-between">
+        <div class="flex flex-row justify-between items-start">
             <div class="flex flex-row items-start gap-4">
                 <MailIcon strokeWidth={1.5} />
                 <div class="flex flex-col gap-1">
@@ -469,22 +469,23 @@
                     <span class="text-sm text-muted-foreground">{displayEmail}</span>
                 </div>
             </div>
-            {#if canEditEmail}
+            <div class="flex flex-row gap-4 ml-auto items-center">
+                {#if !canEditEmail && hasGoogleProvider}
+                    <p class="text-sm text-muted-foreground/50">
+                        Set a password to change your email
+                    </p>
+                {/if}
                 <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onclick={handleEditEmail}
-                    disabled={loading || !!successMessage || editingEmail}
+                    disabled={loading || !!successMessage || editingEmail || !canEditEmail}
                     class="ml-auto"
                 >
-                    Edit
+                    Change email
                 </Button>
-            {:else if hasGoogleProvider}
-                <p class="text-sm text-muted-foreground/50">
-                    Set a password to edit your email
-                </p>
-            {/if}
+            </div>
         </div>
 
         <!-- Email / edit row (only visible when editting) -->
@@ -726,7 +727,7 @@
         <div class="flex flex-col gap-1">
             <span class="text-sm font-medium">Log out</span>
             <span class="text-sm text-muted-foreground">
-                See you soon!
+                See you later!
             </span>
         </div>
 
