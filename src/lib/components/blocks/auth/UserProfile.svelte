@@ -612,8 +612,8 @@
 
         <!-- Name / edit row (only visible when editing) -->
         {#if editingName}
-            <div class="space-y-3 pl-10 py-4 max-w-md">
-                <div class="space-y-2">
+            <div class="space-y-5 pl-10 py-4 max-w-md">
+                <div class="space-y-2.5">
                     <Label for="newFirstName">First Name</Label>
                     <Input
                         id="newFirstName"
@@ -623,7 +623,7 @@
                         placeholder="Enter first name"
                     />
                 </div>
-                <div class="space-y-2">
+                <div class="space-y-2.5">
                     <Label for="newLastName">Last Name</Label>
                     <Input
                         id="newLastName"
@@ -692,8 +692,8 @@
 
         <!-- Email / edit row (only visible when editting) -->
         {#if editingEmail}
-            <div class="space-y-3 pl-10 py-4 max-w-md">
-                <div class="space-y-2">
+            <div class="space-y-5 pl-10 py-4 max-w-md">
+                <div class="space-y-2.5">
                     <Label for="newEmail">New Email</Label>
                     <Input
                         id="newEmail"
@@ -703,7 +703,7 @@
                         placeholder="Enter new email"
                     />
                 </div>
-                <div class="space-y-2">
+                <div class="space-y-2.5">
                     <Label for="currentPasswordForEmail">Current Password</Label>
                     <Input
                         id="currentPasswordForEmail"
@@ -776,8 +776,8 @@
 
         <!-- Password / edit row -->
         {#if editingPassword}
-            <div class="space-y-3 pl-10 py-4 max-w-md">
-                <div class="space-y-2">
+            <div class="space-y-5 pl-10 py-4 max-w-md">
+                <div class="space-y-2.5">
                     <Label for="oldPassword">Current Password</Label>
                     <Input
                         id="oldPassword"
@@ -787,7 +787,7 @@
                         placeholder="Enter current password"
                     />
                 </div>
-                <div class="space-y-2">
+                <div class="space-y-2.5">
                     <Label for="newPassword">New Password</Label>
                     <Input
                         id="newPassword"
@@ -797,7 +797,7 @@
                         placeholder="Enter new password"
                     />
                 </div>
-                <div class="space-y-2">
+                <div class="space-y-2.5">
                     <Label for="confirmPassword">Confirm New Password</Label>
                     <Input
                         id="confirmPassword"
@@ -834,8 +834,8 @@
         {/if}
 
         {#if settingPassword}
-            <div class="space-y-3 pl-10 py-4 max-w-md">
-                <div class="space-y-2">
+            <div class="space-y-5 pl-10 py-4 max-w-md">
+                <div class="space-y-2.5">
                     <Label for="newPasswordSet">New Password</Label>
                     <Input
                         id="newPasswordSet"
@@ -845,7 +845,7 @@
                         placeholder="Enter new password"
                     />
                 </div>
-                <div class="space-y-2">
+                <div class="space-y-2.5">
                     <Label for="confirmPasswordSet">Confirm Password</Label>
                     <Input
                         id="confirmPasswordSet"

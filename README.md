@@ -1,11 +1,11 @@
 # SV Starter
 
-An opinionated SvelteKit 2 + Svelte 5 starter with Firebase Authentication and JWT session cookies. Includes production-ready auth flows, shadcn-svelte UI, Tailwind CSS v4, and server-side sessions using JWT tokens.
+An opinionated SvelteKit 2 + Svelte 5 starter with Firebase Authentication (JWT session cookies). Includes production-ready auth flows, shadcn-svelte UI, Tailwind CSS v4.
 
 ## Highlights
 
-- Email/password + Google auth (signup, login, reset, verification)
-- Account management (update name, email, password, disconnect Google)
+- Email/password + Google auth (signup, login, reset, verification, email change)
+- Account management (update name, email, password, set password for Google users, disconnect Google, delete account)
 - Secure session cookies via `/api/auth/login` & `/api/auth/logout`, protected routes in `src/hooks.server.ts`
 - Firestore `users/{uid}` profiles hydrating `userProfile` store
 - shadcn-svelte components in `lib/components/ui` (add more via CLI)
@@ -62,12 +62,13 @@ Never commit `.env`. Use secrets in CI/CD.
 2. Enable auth providers (*Build → Authentication*):
    - Email/Password
    - Google (authorize `http://localhost:5173` and production domains)
-3. **Configure custom password reset URL** (*Authentication → Templates → Password reset*):
-   - Click on the **Password reset** email template
-   - Scroll down and click **Customize action URL**
-   - Enter your custom action URL: `http://localhost:5173/auth-action`
-   - Save the changes
-   - **Note**: Without this configuration, password reset emails will redirect to Firebase's default handler page instead of your custom page
+3. **Configure custom action URLs** (*Authentication → Templates*):
+   - **Password reset**: Set custom action URL to `http://localhost:5173/auth-action` (or your production domain)
+   - **Email verification**: Set custom action URL to `http://localhost:5173/auth-action` (or your production domain)
+   - **Email change**: Set custom action URL to `http://localhost:5173/auth-action` (or your production domain)
+   
+   The `/auth-action` route automatically routes users to the appropriate page based on the action type.
+   - **Note**: Without this configuration, action emails will redirect to Firebase's default handler page instead of your custom pages
 4. Create Firestore database (*Native* mode). Stores `users/{uid}` with `{ uid, email, firstName, lastName, emailVerified, createdAt, updatedAt }`
 5. Generate service account (*Project settings → Service accounts → Generate new private key*), copy to `.env`
 6. **(Optional)** Harden Firestore rules:
@@ -108,9 +109,18 @@ Export modules from `src/lib/index.ts` before `prepack` if publishing.
 | `/reset-password` | Request password reset |
 | `/set-new-password` | Set new password (from email link) |
 | `/verify-email` | Email verification polling |
-| `/app` | Protected area (shows `userProfile`, sign-out) |
+| `/verify-email-success` | Handle email verification from email link |
+| `/verify-email-change` | Handle email change verification from email link |
+| `/auth-action` | Firebase action handler (routes to appropriate pages) |
+| `/app` | Protected area |
+| `/app/account` | Account management (update profile, email, password, delete) |
+| `/account-deleted` | Account deleted confirmation |
 | `/api/auth/login` | Exchange ID token for session cookie + seed Firestore |
 | `/api/auth/logout` | Clear session cookie |
+| `/api/auth/set-password` | Set password for Google-authenticated users |
+| `/api/auth/update-profile` | Update user profile (name) |
+| `/api/auth/update-email` | Update user email address |
+| `/api/auth/update-password` | Update user password |
 
 Routes protected in `src/hooks.server.ts`: verifies session cookie, stores claims on `event.locals.user`, redirects unverified/unauthenticated users.
 
