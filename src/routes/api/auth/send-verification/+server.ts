@@ -1,0 +1,75 @@
+// SvelteKit utilities and Firebase admin SDK
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+import { adminAuth, adminDb } from '$lib/server/firebase-admin';
+import { sendVerificationEmail } from '$lib/server/loops';
+
+// Handles POST requests to send email verification via Loops
+export const POST: RequestHandler = async ({ request, cookies, url }) => {
+	// Build action code settings dynamically based on request origin
+	const baseUrl = `${url.protocol}//${url.host}`;
+	const actionCodeSettings = {
+		url: `${baseUrl}/auth-action`,
+		handleCodeInApp: true
+	};
+	try {
+		const { email } = await request.json();
+
+		if (!email) {
+			return json({ error: 'Email is required' }, { status: 400 });
+		}
+
+		// Verify the user is authenticated via session cookie
+		const sessionCookie = cookies.get('session');
+		if (!sessionCookie) {
+			return json({ error: 'Not authenticated' }, { status: 401 });
+		}
+
+		// Verify session and get user info
+		const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie, true);
+		
+		// Ensure the email matches the authenticated user
+		if (decodedClaims.email !== email) {
+			return json({ error: 'Email mismatch' }, { status: 403 });
+		}
+
+		// Get user's first name from Firestore for personalized email
+		let firstName = 'there';
+		try {
+			const userDoc = await adminDb.collection('users').doc(decodedClaims.uid).get();
+			if (userDoc.exists) {
+				firstName = userDoc.data()?.firstName || 'there';
+			}
+		} catch (err) {
+			console.error('Error fetching user data:', err);
+		}
+
+		// Generate email verification link using Firebase Admin SDK
+		const verificationLink = await adminAuth.generateEmailVerificationLink(
+			email,
+			actionCodeSettings
+		);
+
+		// Send verification email via Loops
+		const result = await sendVerificationEmail(email, firstName, verificationLink, baseUrl);
+
+		if (!result.success) {
+			return json({ error: result.error || 'Failed to send verification email' }, { status: 500 });
+		}
+
+		return json({ success: true });
+	} catch (error: any) {
+		console.error('Send verification error:', error);
+		
+		// Handle specific Firebase errors
+		if (error.code === 'auth/user-not-found') {
+			return json({ error: 'User not found' }, { status: 404 });
+		}
+		if (error.code === 'auth/session-cookie-expired') {
+			return json({ error: 'Session expired' }, { status: 401 });
+		}
+		
+		return json({ error: error.message || 'Failed to send verification email' }, { status: 500 });
+	}
+};
+
