@@ -3,11 +3,12 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { adminAuth, adminDb } from '$lib/server/firebase-admin';
 import { sendEmailChangeVerificationEmail } from '$lib/server/loops';
+import { env } from '$env/dynamic/private';
 
 // Handles POST requests to send email change verification via Loops
 export const POST: RequestHandler = async ({ request, cookies, url }) => {
-	// Build action code settings dynamically based on request origin
-	const baseUrl = `${url.protocol}//${url.host}`;
+	// Use APP_URL from env if set, otherwise auto-detect from request
+	const baseUrl = env.APP_URL || `${url.protocol}//${url.host}`;
 	const actionCodeSettings = {
 		url: `${baseUrl}/auth-action`,
 		handleCodeInApp: true
