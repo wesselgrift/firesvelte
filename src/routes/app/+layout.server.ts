@@ -1,6 +1,6 @@
 // Firebase admin database and type imports
 import { adminDb } from '$lib/server/firebase-admin';
-import type { UserProfile } from '$lib/stores/userStore';
+import type { UserProfile } from '$lib/stores/userStore.svelte';
 import type { LayoutServerLoad } from './$types';
 
 // Server-side load function that fetches user profile data for authenticated users

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { userProfile } from '$lib/stores/userStore';
+	import { userState } from '$lib/stores/userStore.svelte';
 	import { onAuthStateChanged, type User } from 'firebase/auth';
 	import { auth } from '$lib/firebase/firebase';
 
@@ -84,7 +84,7 @@
 		if (hasGoogleProvider && googleEmail) {
 			return googleEmail;
 		}
-		return $userProfile?.email || 'N/A';
+		return userState.profile?.email || 'N/A';
 	});
 
 	// Determine if email editing is allowed
@@ -97,7 +97,7 @@
 <ProfileAlerts {error} {successMessage} />
 
 <div class="flex flex-col border border-border rounded-lg bg-card overflow-hidden mb-8">
-	<ProfileNameSection userProfile={$userProfile} {successMessage} onAlert={showAlert} />
+	<ProfileNameSection userProfile={userState.profile} {successMessage} onAlert={showAlert} />
 
 	<ProfileEmailSection
 		{currentUser}

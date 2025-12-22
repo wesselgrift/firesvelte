@@ -5,7 +5,7 @@
 	import { Spinner } from '$lib/components/ui/spinner';
 	import { IdCardLanyard } from '@lucide/svelte';
 	import { invalidateAll } from '$app/navigation';
-	import type { UserProfile } from '$lib/stores/userStore';
+	import type { UserProfile } from '$lib/stores/userStore.svelte';
 
 	interface Props {
 		userProfile: UserProfile | null;

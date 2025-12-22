@@ -2,9 +2,9 @@
 	// Global styles and Svelte lifecycle
 	import '../app.css';
 	import { onMount } from 'svelte';
-	// Firebase auth initialization and user store
+	// Firebase auth initialization and user state
 	import { initializeAuth } from '$lib/firebase/auth';
-	import { loading } from '$lib/stores/userStore';
+	import { userState } from '$lib/stores/userStore.svelte';
 	import type { User } from 'firebase/auth';
 
 	// Layout children slot
@@ -18,7 +18,7 @@
 		unsubscribe = initializeAuth(
 			(user: User | null) => {},
 			(isLoading: boolean) => {
-				loading.set(isLoading);
+				userState.loading = isLoading;
 			}
 		);
 

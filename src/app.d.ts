@@ -3,7 +3,7 @@
 
 // Type imports for Firebase authentication and user profile data
 import type { DecodedIdToken } from 'firebase-admin/auth';
-import type { UserProfile } from '$lib/stores/userStore';
+import type { UserProfile } from '$lib/stores/userStore.svelte';
 
 // Global type definitions for SvelteKit App namespace
 declare global {

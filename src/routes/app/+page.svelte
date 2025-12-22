@@ -1,6 +1,6 @@
 <script lang="ts">
-	// User profile store for accessing current user data
-	import { userProfile } from '$lib/stores/userStore';
+	// User state for accessing current user data
+	import { userState } from '$lib/stores/userStore.svelte';
 
     // UI components
     import { Button } from '$lib/components/ui/button';
@@ -13,7 +13,7 @@
 </script>
 
 <!-- Main container displaying user profile information -->
-<h2 class="text-2xl font-semibold mb-2">Hey {$userProfile?.firstName}, <br> welcome to FireSvelte 👋</h2>
+<h2 class="text-2xl font-semibold mb-2">Hey {userState.profile?.firstName}, <br> welcome to FireSvelte 👋</h2>
 <p class="text-muted-foreground text-sm mb-5">Welcome in the (empty) app. Let's build something!</p>
 
 <div class="flex flex-row gap-4">

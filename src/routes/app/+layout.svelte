@@ -1,6 +1,6 @@
 <script lang="ts">
-	// Store and utility imports
-	import { userProfile as userProfileStore } from '$lib/stores/userStore';
+	// State and utility imports
+	import { userState } from '$lib/stores/userStore.svelte';
 	import { addBodyClass, removeBodyClass } from '$lib/utils/bodyClassUpdater';
     
 	// Type imports
@@ -15,9 +15,9 @@
 
 	let { data, children }: Props = $props();
 
-	// Sync user profile from server data to store
+	// Sync user profile from server data to state
 	$effect(() => {
-		userProfileStore.set(data.userProfile || null);
+		userState.profile = data.userProfile || null;
 	});
 
 	// Add 'logged-in' body class when component mounts, remove on unmount

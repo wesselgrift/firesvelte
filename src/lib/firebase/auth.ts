@@ -14,7 +14,7 @@ import {
 import { auth } from './firebase';
 import { goto } from '$app/navigation';
 import { invalidateAll } from '$app/navigation';
-import { userProfile } from '$lib/stores/userStore';
+import { userState } from '$lib/stores/userStore.svelte';
 
 // Google authentication provider instance
 const googleProvider = new GoogleAuthProvider();
@@ -93,7 +93,7 @@ export async function logout(redirectTo: string = '/login') {
 	try {
 		await signOut(auth);
 		await fetch('/api/auth/logout', { method: 'POST' });
-		userProfile.set(null);
+		userState.profile = null;
 
 		if (typeof window !== 'undefined') {
 			localStorage.removeItem('lastEmail');
@@ -246,7 +246,7 @@ export async function deleteAccount() {
 
 		await deleteUser(user);
 		await fetch('/api/auth/logout', { method: 'POST' });
-		userProfile.set(null);
+		userState.profile = null;
 
 		if (typeof window !== 'undefined') {
 			localStorage.removeItem('lastEmail');
