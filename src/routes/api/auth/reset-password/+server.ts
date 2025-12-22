@@ -2,15 +2,18 @@
  * Password Reset API Endpoint
  *
  * Validates the reset token and sets a new password for the user.
+ * Sends a notification email after successful password reset.
  * Uses custom tokens stored in Firestore instead of Firebase action codes.
  */
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { adminAuth } from '$lib/server/firebase-admin';
+import { adminAuth, adminDb } from '$lib/server/firebase-admin';
 import { validatePendingAction, deletePendingAction } from '$lib/server/pending-actions';
+import { sendPasswordChangedNotification } from '$lib/server/loops';
+import { env } from '$env/dynamic/private';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, url }) => {
 	try {
 		// Extract token and new password from request body
 		const { token, newPassword } = await request.json();
@@ -43,6 +46,26 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		// Delete the pending action (one-time use)
 		await deletePendingAction(actionId);
+
+		// Get user data for notification email
+		const userRecord = await adminAuth.getUser(userId);
+		let firstName = 'there';
+		try {
+			const userDoc = await adminDb.collection('users').doc(userId).get();
+			if (userDoc.exists) {
+				firstName = userDoc.data()?.firstName || 'there';
+			}
+		} catch (err) {
+			console.error('Error fetching user data for notification:', err);
+		}
+
+		// Send password changed notification (non-blocking)
+		const baseUrl = env.APP_URL || `${url.protocol}//${url.host}`;
+		if (userRecord.email) {
+			sendPasswordChangedNotification(userRecord.email, firstName, baseUrl).catch((err) => {
+				console.error('Failed to send password changed notification:', err);
+			});
+		}
 
 		return json({ success: true });
 	} catch (error: unknown) {
